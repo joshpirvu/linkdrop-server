@@ -546,7 +546,7 @@
     // ---- socket connection ----
     // ATENTIE: Dacă rulezi local, socket.io se conectează automat la același host.
     // Pentru deployment, modifică URL-ul aici cu cel de la Render.
-    const socket = io();   // când rulezi local pe port 3000; după deploy schimbă în socket = io('https://linkdrop-server.onrender.com')
+    const socket = io('https://linkdrop-server-k92j.onrender.com');   // când rulezi local pe port 3000; după deploy schimbă în socket = io('https://linkdrop-server.onrender.com')
 
     let currentRoomId = null;
     let myCurrentNick = "";
