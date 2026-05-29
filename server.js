@@ -114,7 +114,7 @@ io.on('connection', (socket) => {
 
 // Servește fișierul index.html pentru testarea locală
 app.get('/', (req, res) => {
-    res.send('Backend Socket.IO is running. Use the frontend on Vercel.');
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
