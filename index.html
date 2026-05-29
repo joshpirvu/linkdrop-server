@@ -2,18 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>LinkDrop · dark mode + instant rooms</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>LinkDrop · fast link transfer</title>
+    <!-- QR Code library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: system-ui, 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
-            transition: background-color 0.2s ease, border-color 0.2s, box-shadow 0.1s;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
         }
 
-        /* Light theme variables (fallback) */
+        /* Light theme */
         :root {
             --bg-gradient-start: #f6f9fc;
             --bg-gradient-end: #eef2f5;
@@ -25,7 +26,7 @@
             --btn-primary-bg: #0f2f3d;
             --btn-primary-hover: #1a4458;
             --btn-outline-border: #bdd3e0;
-            --btn-outline-text: #1f5068;
+            --btn-outline-text: #1f2f3e;
             --btn-outline-hover-bg: #eef4f9;
             --join-area-bg: #f8fafc;
             --input-border: #cbdde6;
@@ -33,8 +34,9 @@
             --message-bg: #f0f4f8;
             --message-own-bg: #d9eefb;
             --message-name: #1c6d8f;
+            --message-text: #1e2a3a;
             --system-message-bg: #eff3f6;
-            --system-message-text: #6c8d9c;
+            --system-message-text: #2c5a6e;
             --chat-input-bg: #ffffff;
             --chat-input-border: #dce5ec;
             --leave-btn-bg: #dce5ec;
@@ -46,37 +48,38 @@
             --nick-section-bg: white;
         }
 
-        /* Dark theme overrides */
+        /* Dark theme - improved contrast */
         body.dark {
-            --bg-gradient-start: #121826;
-            --bg-gradient-end: #0f141f;
-            --container-bg: #1e2434;
-            --header-bg: #0b1420;
-            --header-text: #eef2ff;
-            --card-bg: #252d3e;
-            --card-border: #2d3648;
+            --bg-gradient-start: #0f1722;
+            --bg-gradient-end: #0a0f18;
+            --container-bg: #1a2332;
+            --header-bg: #07111c;
+            --header-text: #f1f5f9;
+            --card-bg: #1f2a3e;
+            --card-border: #2d3a4e;
             --btn-primary-bg: #2c5f8a;
             --btn-primary-hover: #3f7bae;
-            --btn-outline-border: #3a465e;
-            --btn-outline-text: #b9d0f0;
-            --btn-outline-hover-bg: #2b3549;
-            --join-area-bg: #1b2232;
-            --input-border: #3d4a66;
-            --input-focus-ring: rgba(59, 130, 246, 0.3);
-            --message-bg: #2a3347;
-            --message-own-bg: #1f3b54;
-            --message-name: #86c8ff;
-            --system-message-bg: #202838;
-            --system-message-text: #9bb3cf;
-            --chat-input-bg: #2f3a4f;
-            --chat-input-border: #3f4c66;
-            --leave-btn-bg: #2d3b4f;
-            --leave-btn-text: #cbdff5;
-            --footer-text: #8ca3c2;
-            --error-bg: #3c2a2a;
-            --error-text: #ffa4a4;
-            --room-id-box-bg: #1e2a3ccc;
-            --nick-section-bg: #1e293b;
+            --btn-outline-border: #3e4a66;
+            --btn-outline-text: #e2e8f0;
+            --btn-outline-hover-bg: #2a354b;
+            --join-area-bg: #121a2a;
+            --input-border: #3e4d6b;
+            --input-focus-ring: rgba(56, 132, 255, 0.4);
+            --message-bg: #2a354d;
+            --message-own-bg: #1f4a6e;
+            --message-name: #aac9ff;
+            --message-text: #f0f4fe;
+            --system-message-bg: #1e2a3a;
+            --system-message-text: #cbd5e6;
+            --chat-input-bg: #1f2a3e;
+            --chat-input-border: #3e4d6b;
+            --leave-btn-bg: #2a354b;
+            --leave-btn-text: #e2e8f0;
+            --footer-text: #94a3b8;
+            --error-bg: #3b2a2a;
+            --error-text: #ffb3b3;
+            --room-id-box-bg: #111a2ecc;
+            --nick-section-bg: #111a2a;
         }
 
         body {
@@ -85,662 +88,522 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 1.5rem;
+            padding: 0.8rem;
         }
 
         .app-container {
             max-width: 700px;
             width: 100%;
             background: var(--container-bg);
-            border-radius: 2.5rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 6px 12px rgba(0, 0, 0, 0.05);
+            border-radius: 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             overflow: hidden;
         }
 
         .header {
             background: var(--header-bg);
-            padding: 1.2rem 2rem;
+            padding: 1rem 1.5rem;
             color: var(--header-text);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
         }
 
         .header h1 {
+            font-size: 1.5rem;
             font-weight: 600;
-            font-size: 1.7rem;
-            letter-spacing: -0.3px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .header h1 span {
             background: #ffcd3c;
-            font-size: 1rem;
-            padding: 4px 10px;
-            border-radius: 40px;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 30px;
             color: #0a2b3e;
         }
 
         .theme-toggle {
-            background: rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.15);
             border: none;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             cursor: pointer;
-            border-radius: 3rem;
-            width: 44px;
-            height: 44px;
+            border-radius: 40px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(4px);
             transition: 0.2s;
         }
         .theme-toggle:hover {
-            background: rgba(255,255,255,0.25);
-            transform: scale(0.96);
-        }
-        body.dark .theme-toggle {
-            background: rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.3);
         }
 
         .main-content {
-            padding: 2rem;
-        }
-
-        .home-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 1.8rem;
-            animation: fadeSlide 0.3s ease;
-        }
-
-        .action-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1.2rem;
-            justify-content: center;
+            padding: 1.2rem;
         }
 
         .btn {
             border: none;
             background: var(--card-bg);
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
+            padding: 0.9rem 1.5rem;
+            font-size: 1rem;
             font-weight: 600;
             border-radius: 3rem;
             cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
             border: 1px solid var(--card-border);
             color: var(--btn-outline-text);
+            transition: 0.2s;
+            width: 100%;
         }
-
         .btn-primary {
             background: var(--btn-primary-bg);
             color: white;
             border: none;
-            box-shadow: 0 8px 18px rgba(15, 47, 61, 0.2);
         }
-
-        .btn-primary:hover {
-            background: var(--btn-primary-hover);
-            transform: translateY(-2px);
+        .btn-primary:active {
+            transform: scale(0.97);
         }
-
-        .btn-outline {
-            background: var(--card-bg);
-            border: 1px solid var(--btn-outline-border);
-            color: var(--btn-outline-text);
-        }
-
-        .btn-outline:hover {
-            background: var(--btn-outline-hover-bg);
-            border-color: var(--btn-outline-border);
-        }
-
         .join-area {
             background: var(--join-area-bg);
-            border-radius: 1.8rem;
-            padding: 1.5rem;
-            margin-top: 0.5rem;
-            border: 1px solid var(--card-border);
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            margin-top: 1rem;
         }
-
         .join-area label {
-            font-weight: 600;
-            color: var(--message-name);
+            color: var(--btn-outline-text);
+            font-weight: 500;
             display: block;
             margin-bottom: 0.5rem;
         }
-
         .join-row {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
         }
-
         .join-row input {
-            flex: 2;
-            padding: 0.9rem 1.2rem;
+            flex: 1;
+            padding: 0.9rem;
             border-radius: 3rem;
             border: 1px solid var(--input-border);
-            font-size: 1rem;
             background: var(--card-bg);
             color: var(--btn-outline-text);
+            font-size: 1rem;
             outline: none;
-            transition: 0.2s;
         }
-
         .join-row input:focus {
             border-color: var(--btn-primary-bg);
             box-shadow: 0 0 0 3px var(--input-focus-ring);
         }
-
-        .error-message {
-            color: var(--error-text);
-            background: var(--error-bg);
-            padding: 0.6rem 1rem;
-            border-radius: 2rem;
-            font-size: 0.85rem;
-            margin-top: 1rem;
-            text-align: center;
-        }
-
-        .chat-panel {
+        .room-header {
             display: flex;
             flex-direction: column;
-            height: 70vh;
-            min-height: 450px;
-            animation: fadeSlide 0.25s ease;
-        }
-
-        .room-header {
+            gap: 12px;
             background: var(--join-area-bg);
-            padding: 0.9rem 1.2rem;
-            border-radius: 2rem;
+            padding: 1rem;
+            border-radius: 1.5rem;
             margin-bottom: 1rem;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
         }
-
         .room-id-box {
             background: var(--room-id-box-bg);
-            backdrop-filter: blur(4px);
-            padding: 0.4rem 1rem;
-            border-radius: 2rem;
+            padding: 0.6rem 1rem;
+            border-radius: 3rem;
             font-family: monospace;
             font-weight: bold;
-            font-size: 1.1rem;
-            border: 1px solid var(--card-border);
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            backdrop-filter: blur(4px);
             color: var(--btn-outline-text);
         }
-
         .copy-btn {
             background: none;
             border: none;
+            font-size: 1rem;
+            font-weight: normal;
             cursor: pointer;
-            font-size: 1.2rem;
-            padding: 4px 8px;
-            border-radius: 30px;
-            transition: background 0.1s;
             color: var(--btn-outline-text);
+            padding: 0.2rem 0.8rem;
+            border-radius: 2rem;
+            background: rgba(255,255,255,0.1);
         }
-
-        .copy-btn:hover {
-            background: var(--btn-outline-hover-bg);
+        .qr-container {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
         }
-
         .nick-section {
             display: flex;
             gap: 8px;
             align-items: center;
             background: var(--nick-section-bg);
-            padding: 0.3rem 0.8rem;
+            padding: 0.4rem 0.8rem;
             border-radius: 3rem;
             border: 1px solid var(--card-border);
         }
-
         .nick-section input {
-            border: none;
             background: transparent;
+            border: none;
             padding: 0.4rem 0;
             width: 110px;
             font-size: 0.85rem;
             outline: none;
             color: var(--btn-outline-text);
         }
-
         .nick-section button {
             background: var(--btn-primary-bg);
-            color: white;
             border: none;
             padding: 0.2rem 0.8rem;
             border-radius: 2rem;
+            color: white;
             font-size: 0.7rem;
             cursor: pointer;
         }
-
         .messages-area {
-            flex: 1;
             background: var(--card-bg);
             border-radius: 1.5rem;
             border: 1px solid var(--card-border);
+            height: 55vh;
             overflow-y: auto;
-            padding: 1rem;
+            padding: 0.8rem;
             margin: 1rem 0;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
         }
-
         .message {
             max-width: 85%;
             padding: 0.6rem 1rem;
-            border-radius: 1.8rem;
+            border-radius: 1.5rem;
             background: var(--message-bg);
             align-self: flex-start;
             word-break: break-word;
-            font-size: 0.95rem;
-            line-height: 1.4;
-            box-shadow: 0 1px 1px rgba(0,0,0,0.02);
-            color: var(--btn-outline-text);
+            color: var(--message-text);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
-
         .message.own {
             background: var(--message-own-bg);
             align-self: flex-end;
-            border-bottom-right-radius: 0.5rem;
+            color: var(--message-text);
         }
-
         .message .msg-name {
             font-weight: 700;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--message-name);
+            margin-bottom: 4px;
             display: block;
-            margin-bottom: 3px;
         }
-
-        .message .msg-text {
-            color: var(--btn-outline-text);
-        }
-
-        .system-message {
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--system-message-text);
-            background: var(--system-message-bg);
-            padding: 0.3rem 1rem;
-            border-radius: 2rem;
-            width: fit-content;
-            margin: 0 auto;
-        }
-
         .chat-input-area {
             display: flex;
-            gap: 12px;
-            background: var(--chat-input-bg);
-            padding: 0.6rem;
-            border-radius: 4rem;
-            border: 1px solid var(--chat-input-border);
+            gap: 8px;
+            flex-wrap: wrap;
         }
-
         .chat-input-area input {
-            flex: 1;
-            border: none;
-            padding: 0.8rem 1rem;
+            flex: 2;
+            padding: 0.9rem;
             border-radius: 3rem;
-            font-size: 0.95rem;
-            outline: none;
+            border: 1px solid var(--input-border);
             background: var(--card-bg);
             color: var(--btn-outline-text);
+            font-size: 1rem;
+            outline: none;
         }
-
+        .chat-input-area input:focus {
+            border-color: var(--btn-primary-bg);
+        }
         .chat-input-area button {
             background: var(--btn-primary-bg);
             border: none;
-            padding: 0 1.5rem;
+            padding: 0 1.2rem;
             border-radius: 3rem;
             color: white;
-            font-weight: 600;
+            font-weight: bold;
             cursor: pointer;
             transition: 0.2s;
         }
-
+        .chat-input-area button:active {
+            transform: scale(0.96);
+        }
         .leave-btn {
             background: var(--leave-btn-bg);
             color: var(--leave-btn-text);
+            width: 100%;
+            margin-top: 0.8rem;
             border: none;
-            padding: 0.5rem 1.2rem;
-            border-radius: 2rem;
-            font-weight: 500;
+            padding: 0.8rem;
+            border-radius: 3rem;
+            font-weight: 600;
             cursor: pointer;
-            margin-top: 0.5rem;
         }
-
-        @keyframes fadeSlide {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        footer {
-            font-size: 0.7rem;
+        .system-message {
             text-align: center;
-            padding: 1rem;
-            border-top: 1px solid var(--card-border);
+            font-size: 0.7rem;
+            background: var(--system-message-bg);
+            padding: 0.3rem 0.8rem;
+            border-radius: 2rem;
+            width: fit-content;
+            margin: 0 auto;
+            color: var(--system-message-text);
+        }
+        .error-message {
+            background: var(--error-bg);
+            color: var(--error-text);
+            padding: 0.6rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+        .hidden { display: none; }
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            padding: 0.8rem;
             color: var(--footer-text);
+            border-top: 1px solid var(--card-border);
+        }
+        @media (max-width: 480px) {
+            .main-content { padding: 0.8rem; }
+            .btn, .join-row input, .chat-input-area input { font-size: 1rem; padding: 0.8rem; }
         }
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
-<body class="dark">  <!-- Default dark mode -->
+<body class="dark">
 <div class="app-container">
     <div class="header">
-        <h1>📡 LinkDrop <span>no signup</span></h1>
-        <button class="theme-toggle" id="themeToggleBtn" aria-label="Dark/Light mode">☀️</button>
+        <h1>📡 LinkDrop <span>fast link</span></h1>
+        <button class="theme-toggle" id="themeToggleBtn">☀️</button>
     </div>
-
-    <div class="main-content" id="appRoot">
-        <!-- HOME VIEW -->
+    <div class="main-content">
         <div id="homeView">
             <div class="home-panel">
-                <div class="action-buttons">
-                    <button class="btn btn-primary" id="makeRoomBtn">✨ Make a room</button>
-                </div>
+                <button class="btn btn-primary" id="makeRoomBtn">✨ Create room</button>
                 <div class="join-area">
-                    <label>🔗 Join existing room</label>
+                    <label>🔗 Or join an existing room</label>
                     <div class="join-row">
-                        <input type="text" id="joinRoomIdInput" placeholder="Enter room ID (e.g., A1B2C3)" autocomplete="off">
-                        <button class="btn-outline" id="joinRoomBtn">Join →</button>
+                        <input type="text" id="joinRoomIdInput" placeholder="Ex: A1B2C3" autocomplete="off">
+                        <button class="btn" id="joinRoomBtn">Join</button>
                     </div>
                     <div id="joinErrorMsg" class="error-message hidden"></div>
                 </div>
-                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--footer-text); text-align:center;">
-                    💡 Room ID appears after creating. Share it via any messenger.
-                </div>
             </div>
         </div>
-
-        <!-- CHAT VIEW -->
         <div id="chatView" class="hidden">
-            <div class="chat-panel">
-                <div class="room-header">
-                    <div class="room-id-box">
-                        <span>🆔 Room: <strong id="roomIdDisplay">---</strong></span>
-                        <button class="copy-btn" id="copyRoomIdBtn" title="Copy room ID">📋</button>
-                    </div>
-                    <div class="nick-section">
-                        <input type="text" id="nicknameInput" maxlength="20" placeholder="Your name">
-                        <button id="updateNickBtn">Set</button>
-                    </div>
+            <div class="room-header">
+                <div class="room-id-box">
+                    <span>🆔 <strong id="roomIdDisplay">---</strong></span>
+                    <button class="copy-btn" id="copyRoomIdBtn">📋 Copy ID</button>
                 </div>
-
-                <div class="messages-area" id="messagesContainer">
-                    <div class="system-message">✨ Waiting for connection ...</div>
+                <div class="qr-container" id="qrContainer"></div>
+                <div class="nick-section">
+                    <input type="text" id="nicknameInput" placeholder="Name" maxlength="20">
+                    <button id="updateNickBtn">Set</button>
                 </div>
-
-                <div class="chat-input-area">
-                    <input type="text" id="messageInput" placeholder="Type a message or link ..." autocomplete="off">
-                    <button id="sendMsgBtn">Send ↲</button>
-                </div>
-                <button class="leave-btn" id="leaveRoomBtn">🚪 Leave room / Home</button>
             </div>
+            <div class="messages-area" id="messagesContainer">
+                <div class="system-message">✨ Connected. Send any link.</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="messageInput" placeholder="Type a link or message...">
+                <button id="sendMsgBtn">Send</button>
+            </div>
+            <button class="leave-btn" id="leaveRoomBtn">🚪 Leave room</button>
         </div>
     </div>
-    <footer>🔐 No accounts · realtime · share any link · dark mode default</footer>
+    <footer>🔐 No account · Scan QR for direct link</footer>
 </div>
-
 <script>
-    // ---- DARK MODE TOGGLE with localStorage ----
+    // Theme dark/light
     const themeToggle = document.getElementById('themeToggleBtn');
     function setTheme(theme) {
         if (theme === 'dark') {
             document.body.classList.add('dark');
             localStorage.setItem('linkdrop-theme', 'dark');
-            if(themeToggle) themeToggle.innerHTML = '☀️';
+            themeToggle.innerHTML = '☀️';
         } else {
             document.body.classList.remove('dark');
             localStorage.setItem('linkdrop-theme', 'light');
-            if(themeToggle) themeToggle.innerHTML = '🌙';
+            themeToggle.innerHTML = '🌙';
         }
     }
-    function initTheme() {
-        const saved = localStorage.getItem('linkdrop-theme');
-        if (saved === 'light') {
-            setTheme('light');
-        } else {
-            setTheme('dark'); // default dark mode
-        }
-    }
-    if(themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            const isDark = document.body.classList.contains('dark');
-            if(isDark) setTheme('light');
-            else setTheme('dark');
-        });
-    }
-    initTheme();
+    const savedTheme = localStorage.getItem('linkdrop-theme');
+    if (savedTheme === 'light') setTheme('light');
+    else setTheme('dark');
+    themeToggle.addEventListener('click', () => {
+        const isDark = document.body.classList.contains('dark');
+        setTheme(isDark ? 'light' : 'dark');
+    });
 
-    // ---- socket connection ----
-    // ATENTIE: Dacă rulezi local, socket.io se conectează automat la același host.
-    // Pentru deployment, modifică URL-ul aici cu cel de la Render.
-    const socket = io('https://linkdrop-server-k92j.onrender.com');   // când rulezi local pe port 3000; după deploy schimbă în socket = io('https://linkdrop-server.onrender.com')
+    // --- Socket.io with backend URL (Render) or local if same server ---
+    const SOCKET_URL = 'https://linkdrop-server-k92j.onrender.com';
+    const socket = io(SOCKET_URL);
 
     let currentRoomId = null;
-    let myCurrentNick = "";
+    let myNick = '';
 
     // DOM elements
     const homeView = document.getElementById('homeView');
     const chatView = document.getElementById('chatView');
-    const makeRoomBtn = document.getElementById('makeRoomBtn');
-    const joinRoomBtn = document.getElementById('joinRoomBtn');
-    const joinRoomIdInput = document.getElementById('joinRoomIdInput');
-    const joinErrorMsg = document.getElementById('joinErrorMsg');
-    const roomIdDisplay = document.getElementById('roomIdDisplay');
-    const copyRoomIdBtn = document.getElementById('copyRoomIdBtn');
-    const messagesContainer = document.getElementById('messagesContainer');
-    const messageInput = document.getElementById('messageInput');
-    const sendMsgBtn = document.getElementById('sendMsgBtn');
-    const leaveRoomBtn = document.getElementById('leaveRoomBtn');
-    const nicknameInput = document.getElementById('nicknameInput');
+    const makeBtn = document.getElementById('makeRoomBtn');
+    const joinBtn = document.getElementById('joinRoomBtn');
+    const joinInput = document.getElementById('joinRoomIdInput');
+    const joinError = document.getElementById('joinErrorMsg');
+    const roomIdSpan = document.getElementById('roomIdDisplay');
+    const copyRoomBtn = document.getElementById('copyRoomIdBtn');
+    const messagesDiv = document.getElementById('messagesContainer');
+    const msgInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendMsgBtn');
+    const leaveBtn = document.getElementById('leaveRoomBtn');
+    const nickInput = document.getElementById('nicknameInput');
     const updateNickBtn = document.getElementById('updateNickBtn');
+    const qrContainer = document.getElementById('qrContainer');
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function addMessage(name, text, isOwn = false) {
+        const div = document.createElement('div');
+        div.className = 'message' + (isOwn ? ' own' : '');
+        div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${escapeHtml(text)}</div>`;
+        messagesDiv.appendChild(div);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function addSystemMessage(text) {
+        const sys = document.createElement('div');
+        sys.className = 'system-message';
+        sys.innerText = text;
+        messagesDiv.appendChild(sys);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function clearMessages() { messagesDiv.innerHTML = ''; }
 
     function showHome() {
         homeView.classList.remove('hidden');
         chatView.classList.add('hidden');
-        if (socket && currentRoomId) {
-            socket.emit('leave_room', { roomId: currentRoomId });
-        }
+        if (currentRoomId) socket.emit('leave_room', { roomId: currentRoomId });
         currentRoomId = null;
-        clearMessagesUI();
-        joinErrorMsg.classList.add('hidden');
+        clearMessages();
+        joinError.classList.add('hidden');
+        qrContainer.innerHTML = '';
     }
 
     function showChat(roomId) {
         homeView.classList.add('hidden');
         chatView.classList.remove('hidden');
         currentRoomId = roomId;
-        roomIdDisplay.innerText = roomId;
-        clearMessagesUI();
-        addSystemMessage(`📡 Connected to room: ${roomId}`);
-        messageInput.focus();
-    }
-
-    function clearMessagesUI() {
-        messagesContainer.innerHTML = '';
-    }
-
-    function addMessage(fromNick, text, isOwn = false) {
-        const msgDiv = document.createElement('div');
-        msgDiv.classList.add('message');
-        if (isOwn) msgDiv.classList.add('own');
-        const nameSpan = document.createElement('span');
-        nameSpan.classList.add('msg-name');
-        nameSpan.innerText = isOwn ? `You (${fromNick})` : fromNick;
-        const textSpan = document.createElement('span');
-        textSpan.classList.add('msg-text');
-        textSpan.innerText = text;
-        msgDiv.appendChild(nameSpan);
-        msgDiv.appendChild(textSpan);
-        messagesContainer.appendChild(msgDiv);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-
-    function addSystemMessage(text) {
-        const sysDiv = document.createElement('div');
-        sysDiv.classList.add('system-message');
-        sysDiv.innerText = text;
-        messagesContainer.appendChild(sysDiv);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        roomIdSpan.innerText = roomId;
+        clearMessages();
+        addSystemMessage(`📡 In room: ${roomId}`);
+        msgInput.focus();
+        const directLink = `${window.location.origin}?room=${roomId}`;
+        addSystemMessage(`🔗 Direct link: ${directLink}`);
+        qrContainer.innerHTML = '';
+        try {
+            new QRCode(qrContainer, {
+                text: directLink,
+                width: 120,
+                height: 120
+            });
+            addSystemMessage(`📱 Scan the QR code to quickly join from another device.`);
+        } catch(e) { console.warn("QR error", e); }
     }
 
     function generateRandomNick() {
-        const adj = ["Pixel", "Wave", "Echo", "Nova", "Luma", "Zest", "Vox", "Rift"];
-        const rand = Math.floor(Math.random() * 900) + 100;
-        return adj[Math.floor(Math.random() * adj.length)] + rand;
+        const names = ["Pixel", "Wave", "Echo", "Nova", "Luma", "Zest"];
+        return names[Math.floor(Math.random()*names.length)] + Math.floor(Math.random()*900+100);
     }
 
-    function updateNickname(newNick) {
-        if (!newNick || newNick.trim() === "") {
-            newNick = generateRandomNick();
-        }
-        newNick = newNick.trim().substring(0, 20);
-        myCurrentNick = newNick;
-        if (socket) {
-            socket.emit('set_nickname', { nick: myCurrentNick });
-        }
-        nicknameInput.value = myCurrentNick;
+    function updateNickname(nick) {
+        if (!nick || !nick.trim()) nick = generateRandomNick();
+        myNick = nick.trim().substring(0,20);
+        socket.emit('set_nickname', { nick: myNick });
+        nickInput.value = myNick;
     }
 
     function sendMessage() {
-        let msg = messageInput.value.trim();
-        if (!msg) return;
-        if (!currentRoomId || !socket) {
-            addSystemMessage("❌ Not connected to any room.");
-            return;
-        }
-        socket.emit('chat_message', { roomId: currentRoomId, message: msg });
-        messageInput.value = '';
-        messageInput.focus();
+        const text = msgInput.value.trim();
+        if (!text || !currentRoomId) return;
+        socket.emit('chat_message', { roomId: currentRoomId, message: text });
+        msgInput.value = '';
+        msgInput.focus();
     }
 
-    // Socket event handlers
+    // Socket events
     socket.on('connect', () => {
-        updateNickname(myCurrentNick || generateRandomNick());
-        addSystemMessage("✅ Connected to server");
+        updateNickname(myNick || generateRandomNick());
+        addSystemMessage('✅ Connected to server');
     });
-
     socket.on('new_message', (data) => {
         if (data.roomId === currentRoomId) {
-            const isOwn = (data.nick === myCurrentNick);
-            addMessage(data.nick, data.message, isOwn);
+            addMessage(data.nick, data.message, data.nick === myNick);
         }
     });
-
     socket.on('room_notification', (notif) => {
-        if (notif.roomId === currentRoomId) {
-            addSystemMessage(notif.text);
-        }
+        if (notif.roomId === currentRoomId) addSystemMessage(notif.text);
     });
-
     socket.on('room_created', (data) => {
         showChat(data.roomId);
-        addSystemMessage(`🌟 Room created! Share this ID: ${data.roomId}`);
-        addSystemMessage("💬 Anyone with the ID can join and chat with you.");
+        addSystemMessage(`🌟 Room created! ID: ${data.roomId}`);
     });
-
     socket.on('join_result', (data) => {
         if (data.success) {
             showChat(data.roomId);
-            addSystemMessage(`✅ Joined room ${data.roomId}`);
-            addSystemMessage(`👋 Your nickname: ${myCurrentNick} (you can change it)`);
+            addSystemMessage(`✅ You joined room ${data.roomId}`);
         } else {
-            joinErrorMsg.innerText = data.error || "Room doesn't exist or is inactive.";
-            joinErrorMsg.classList.remove('hidden');
-            setTimeout(() => joinErrorMsg.classList.add('hidden'), 4000);
+            joinError.innerText = data.error || 'Room does not exist';
+            joinError.classList.remove('hidden');
+            setTimeout(() => joinError.classList.add('hidden'), 3000);
         }
     });
-
     socket.on('nickname_changed', (data) => {
-        if (data.newNick === myCurrentNick) {
-            addSystemMessage(`🟢 Nickname set to "${myCurrentNick}"`);
-        }
+        if (data.newNick === myNick) addSystemMessage(`🟢 Name set: ${myNick}`);
     });
+    socket.on('disconnect', () => addSystemMessage('🔌 Disconnected from server'));
 
-    socket.on('error_message', (err) => {
-        if (err.roomContext && err.roomContext === currentRoomId) {
-            addSystemMessage(`⚠️ ${err.text || 'Error'}`);
-        } else if (!currentRoomId) {
-            joinErrorMsg.innerText = err.text || 'Connection error';
-            joinErrorMsg.classList.remove('hidden');
-            setTimeout(() => joinErrorMsg.classList.add('hidden'), 3000);
-        }
-    });
-
-    socket.on('disconnect', () => {
-        if (currentRoomId) {
-            addSystemMessage("🔌 Disconnected from server. Reload or go home.");
-        }
-    });
-
-    // UI event listeners
-    makeRoomBtn.addEventListener('click', () => socket.emit('create_room'));
-    joinRoomBtn.addEventListener('click', () => {
-        const rid = joinRoomIdInput.value.trim().toUpperCase();
-        if (!rid) {
-            joinErrorMsg.innerText = "Please enter a room ID";
-            joinErrorMsg.classList.remove('hidden');
-            setTimeout(() => joinErrorMsg.classList.add('hidden'), 2500);
-            return;
-        }
+    // UI Listeners
+    makeBtn.addEventListener('click', () => socket.emit('create_room'));
+    joinBtn.addEventListener('click', () => {
+        const rid = joinInput.value.trim().toUpperCase();
+        if (!rid) { joinError.innerText = 'Enter an ID'; joinError.classList.remove('hidden'); setTimeout(() => joinError.classList.add('hidden'),2000); return; }
         socket.emit('join_room', { roomId: rid });
     });
-    joinRoomIdInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') joinRoomBtn.click();
-    });
-    sendMsgBtn.addEventListener('click', () => sendMessage());
-    messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendMessage();
-    });
-    leaveRoomBtn.addEventListener('click', () => showHome());
-    copyRoomIdBtn.addEventListener('click', () => {
+    sendBtn.addEventListener('click', sendMessage);
+    msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    leaveBtn.addEventListener('click', showHome);
+    copyRoomBtn.addEventListener('click', () => {
         if (currentRoomId) {
             navigator.clipboard.writeText(currentRoomId);
-            addSystemMessage("📋 Room ID copied to clipboard!");
+            addSystemMessage('📋 ID copied');
         }
     });
-    updateNickBtn.addEventListener('click', () => {
-        let newNick = nicknameInput.value.trim();
-        if (newNick === "") newNick = generateRandomNick();
-        updateNickname(newNick);
-    });
-    nicknameInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') updateNickBtn.click();
-    });
+    updateNickBtn.addEventListener('click', () => updateNickname(nickInput.value));
+    nickInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') updateNickname(nickInput.value); });
 
-    // inițializare nickname
+    // Auto-join via URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomFromUrl = urlParams.get('room');
+    if (roomFromUrl) {
+        joinInput.value = roomFromUrl.toUpperCase();
+        setTimeout(() => joinBtn.click(), 500);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
     updateNickname(generateRandomNick());
 </script>
 </body>
