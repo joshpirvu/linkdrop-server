@@ -419,7 +419,10 @@
                     <label>🔗 Or join an existing room</label>
                     <div class="join-row">
                         <input type="text" id="joinRoomIdInput" placeholder="Ex: A1B2C3" autocomplete="off">
-                        <button class="btn" id="joinRoomBtn">Join</button>
+                        <button class="btn" id="joinRoomBtn">
+                            <span id="joinBtnText">Join</span>
+                            <span id="joinBtnSpinner" class="spinner" style="display: none;"></span>
+                        </button>
                     </div>
                     <div id="joinErrorMsg" class="error-message hidden"></div>
                 </div>
@@ -471,7 +474,7 @@
         setTheme(isDark ? 'light' : 'dark');
     });
 
-    // --- Socket.io with backend URL (Render) or local if same server ---
+    // --- Socket.io with backend URL (Render) ---
     const SOCKET_URL = 'https://linkdrop-server-k92j.onrender.com';
     const socket = io(SOCKET_URL);
 
@@ -485,6 +488,8 @@
     const makeBtnText = document.getElementById('makeBtnText');
     const makeBtnSpinner = document.getElementById('makeBtnSpinner');
     const joinBtn = document.getElementById('joinRoomBtn');
+    const joinBtnText = document.getElementById('joinBtnText');
+    const joinBtnSpinner = document.getElementById('joinBtnSpinner');
     const joinInput = document.getElementById('joinRoomIdInput');
     const joinError = document.getElementById('joinErrorMsg');
     const roomIdSpan = document.getElementById('roomIdDisplay');
@@ -504,7 +509,6 @@
             makeBtn.disabled = true;
             makeBtnText.style.display = 'none';
             makeBtnSpinner.style.display = 'inline-block';
-            // Timeout de siguranță: după 10 secunde, revenim la normal și afișăm eroare
             if (createRoomTimeout) clearTimeout(createRoomTimeout);
             createRoomTimeout = setTimeout(() => {
                 if (makeBtn.disabled) {
@@ -519,6 +523,34 @@
             if (createRoomTimeout) {
                 clearTimeout(createRoomTimeout);
                 createRoomTimeout = null;
+            }
+        }
+    }
+
+    // Helper pentru loading state pe butonul Join Room
+    let joinRoomTimeout = null;
+    function setJoinRoomLoading(isLoading) {
+        if (isLoading) {
+            joinBtn.disabled = true;
+            joinBtnText.style.display = 'none';
+            joinBtnSpinner.style.display = 'inline-block';
+            if (joinRoomTimeout) clearTimeout(joinRoomTimeout);
+            joinRoomTimeout = setTimeout(() => {
+                if (joinBtn.disabled) {
+                    setJoinRoomLoading(false);
+                    addSystemMessage('⚠️ Server not responding. Please try again.');
+                    joinError.innerText = 'Server timeout. Please try again.';
+                    joinError.classList.remove('hidden');
+                    setTimeout(() => joinError.classList.add('hidden'), 4000);
+                }
+            }, 10000);
+        } else {
+            joinBtn.disabled = false;
+            joinBtnText.style.display = 'inline';
+            joinBtnSpinner.style.display = 'none';
+            if (joinRoomTimeout) {
+                clearTimeout(joinRoomTimeout);
+                joinRoomTimeout = null;
             }
         }
     }
@@ -558,8 +590,9 @@
         clearMessages();
         joinError.classList.add('hidden');
         qrContainer.innerHTML = '';
-        // Asigură că butonul de creare este în stare normală
+        // Reset any loading states when returning home
         setCreateRoomLoading(false);
+        setJoinRoomLoading(false);
     }
 
     function showChat(roomId) {
@@ -617,11 +650,12 @@
         if (notif.roomId === currentRoomId) addSystemMessage(notif.text);
     });
     socket.on('room_created', (data) => {
-        setCreateRoomLoading(false); // oprește loading-ul
+        setCreateRoomLoading(false);
         showChat(data.roomId);
         addSystemMessage(`🌟 Room created! ID: ${data.roomId}`);
     });
     socket.on('join_result', (data) => {
+        setJoinRoomLoading(false);
         if (data.success) {
             showChat(data.roomId);
             addSystemMessage(`✅ You joined room ${data.roomId}`);
@@ -643,7 +677,13 @@
     });
     joinBtn.addEventListener('click', () => {
         const rid = joinInput.value.trim().toUpperCase();
-        if (!rid) { joinError.innerText = 'Enter an ID'; joinError.classList.remove('hidden'); setTimeout(() => joinError.classList.add('hidden'),2000); return; }
+        if (!rid) {
+            joinError.innerText = 'Enter an ID';
+            joinError.classList.remove('hidden');
+            setTimeout(() => joinError.classList.add('hidden'), 2000);
+            return;
+        }
+        setJoinRoomLoading(true);
         socket.emit('join_room', { roomId: rid });
     });
     sendBtn.addEventListener('click', sendMessage);
