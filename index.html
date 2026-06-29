@@ -205,6 +205,31 @@
         .main-content > div:not(.hidden) {
             animation: fadeIn 0.3s ease-out forwards;
         }
+		
+		::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+		::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+		::-webkit-scrollbar-thumb {
+    background-color: var(--card-border);
+    border-radius: 10px;
+    border: 2px solid var(--container-bg);
+}
+
+		::-webkit-scrollbar-thumb:hover {
+    background-color: var(--btn-outline-border);
+}
+
+		/* For Firefox */
+	* {
+		scrollbar-width: thin;
+		scrollbar-color: var(--card-border) transparent;
+}
 
         .btn {
             border: none;
