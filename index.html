@@ -791,7 +791,7 @@
         setJoinRoomLoading(false);
     }
 
-    function showChat(roomId) {
+        function showChat(roomId) {
         homeView.classList.add('hidden');
         chatView.classList.remove('hidden');
         currentRoomId = roomId;
@@ -802,6 +802,22 @@
         
         const directLink = `${window.location.origin}?room=${roomId}`;
         qrContainer.innerHTML = '';
+        qrContainer.style.cursor = 'pointer';
+        qrContainer.title = "Click to copy room link";
+        
+        // Add click-to-copy functionality
+        qrContainer.onclick = () => {
+            navigator.clipboard.writeText(directLink).then(() => {
+                const originalTitle = qrContainer.title;
+                qrContainer.title = "Copied!";
+                qrContainer.style.borderColor = "#1c6d8f";
+                setTimeout(() => {
+                    qrContainer.title = originalTitle;
+                    qrContainer.style.borderColor = "transparent";
+                }, 1500);
+            });
+        };
+
         try {
             new QRCode(qrContainer, {
                 text: directLink,
@@ -814,7 +830,7 @@
     }
 
     function generateRandomNick() {
-        const names = ["Pixel", "Wave", "Echo", "Nova", "Luma", "Zest"];
+        const names = ["Pixel", "Wave", "Echo", "Nova", "Luma", "Zest", "Chess"];
         return names[Math.floor(Math.random()*names.length)] + Math.floor(Math.random()*900+100);
     }
 
