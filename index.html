@@ -745,10 +745,13 @@
         // This looks for: 
         // 1. explicit http/https 
         // 2. OR words ending in .com, .net, .org, etc (basic domain matching)
-        const urlRegex = /((https?:\/\/[^\s]+)|(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}(\/[^\s]*)?))/g;
+		// 3. Allows for longer TLDs (up to 20 chars) to support .academy, .solutions, etc.
+        const urlRegex = /((https?:\/\/[^\s]+)|(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,20}(\/[^\s]*)?))/g;
         
         return text.replace(urlRegex, function(match) {
-            const url = match.startsWith('http') ? match : 'https://' + match;
+            // If it already starts with http, use it as is.
+            // Otherwise, prepend https://
+            const url = match.match(/^https?:\/\//) ? match : 'https://' + match;
             return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="chat-link">${match}</a>`;
         });
     }
