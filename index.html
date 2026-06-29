@@ -741,10 +741,15 @@
     }
 
     function linkify(text) {
-        // Find URLs starting with http:// or https://
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        return text.replace(urlRegex, function(url) {
-            return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="chat-link">${url}</a>`;
+        // Regex to match URLs (including domains without http://)
+        // This looks for: 
+        // 1. explicit http/https 
+        // 2. OR words ending in .com, .net, .org, etc (basic domain matching)
+        const urlRegex = /((https?:\/\/[^\s]+)|(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}(\/[^\s]*)?))/g;
+        
+        return text.replace(urlRegex, function(match) {
+            const url = match.startsWith('http') ? match : 'https://' + match;
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="chat-link">${match}</a>`;
         });
     }
 
