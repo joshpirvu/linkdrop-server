@@ -712,7 +712,13 @@
 
     // --- Socket.io ---
     const SOCKET_URL = 'https://linkdrop-server-k92j.onrender.com';
-    const socket = io(SOCKET_URL);
+    const socket = io(SOCKET_URL, {
+        reconnection: true,             // Enable automatic reconnection
+        reconnectionAttempts: 20,       // Try 20 times (gives server ~60 seconds to wake up)
+        reconnectionDelay: 2000,        // Wait 2 seconds between attempts
+        reconnectionDelayMax: 5000,     // Wait max 5 seconds between attempts
+        timeout: 20000                  // 20 second connection timeout
+    });
 
     let currentRoomId = null;
     let myNick = '';
@@ -903,8 +909,30 @@
     }
 
     socket.on('connect', () => {
+        // Remove the "reconnecting" message if it exists
+        const sysMessages = document.querySelectorAll('.system-message.reconnecting');
+        sysMessages.forEach(msg => msg.remove());
+        
         updateNickname(myNick || generateRandomNick());
         console.log('Connected to server');
+    });
+
+    // 1. Connection error listener for the UI
+    socket.on('connect_error', () => {
+        if (!document.querySelector('.system-message.reconnecting')) {
+            addSystemMessage('Connection lost. Reconnecting...');
+            // Add a class so we can find/remove it later
+            const lastMsg = messagesDiv.lastElementChild;
+            if(lastMsg) lastMsg.classList.add('reconnecting');
+        }
+    });
+
+    // 2. Room error listener for Graceful Recovery
+    socket.on('room_error', (data) => {
+        addSystemMessage('⚠️ ' + data.error + ' Returning home...');
+        setTimeout(() => {
+            showHome();
+        }, 3000);
     });
     
     socket.on('new_message', (data) => {
