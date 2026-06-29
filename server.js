@@ -13,6 +13,8 @@ const rooms = new Map();          // roomId -> Set(socketIds)
 const userNicks = new Map();      // socketId -> nick
 const roomTimeouts = new Map();   // roomId -> timeoutId (for delayed deletion)
 
+const ROOM_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours (increased from 5 minutes)
+
 function generateRoomId() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
@@ -63,7 +65,10 @@ io.on('connection', (socket) => {
     });
 
     socket.on('chat_message', ({ roomId, message }) => {
-        if (!roomId || !rooms.has(roomId)) return;
+        if (!roomId || !rooms.has(roomId)) {
+            // Tell the frontend that the room expired so it can recover gracefully
+            return socket.emit('room_error', { error: 'Room does not exist or has expired.' });
+        }
         const nick = userNicks.get(socket.id) || 'Anonymous';
         io.to(roomId).emit('new_message', {
             roomId,
@@ -84,16 +89,16 @@ io.on('connection', (socket) => {
             io.to(roomId).emit('member_count', { count: rooms.get(roomId).size });
             
             if (rooms.get(roomId).size === 0) {
-                // If no one is left, schedule room deletion after 5 minutes
+                // If no one is left, schedule room deletion after 24 hours
                 const timeoutId = setTimeout(() => {
                     if (rooms.has(roomId) && rooms.get(roomId).size === 0) {
                         rooms.delete(roomId);
                         roomTimeouts.delete(roomId);
-                        console.log(`Room deleted after timeout (5 min): ${roomId}`);
+                        console.log(`Room deleted after timeout (24 hours): ${roomId}`);
                     }
-                }, 5 * 60 * 1000); // 5 minutes
+                }, ROOM_TIMEOUT_MS);
                 roomTimeouts.set(roomId, timeoutId);
-                console.log(`Room ${roomId} will be deleted in 5 minutes if no one returns.`);
+                console.log(`Room ${roomId} will be deleted in 24 hours if no one returns.`);
             }
         }
     });
@@ -116,7 +121,7 @@ io.on('connection', (socket) => {
                             roomTimeouts.delete(roomId);
                             console.log(`Room deleted after total disconnection: ${roomId}`);
                         }
-                    }, 5 * 60 * 1000);
+                    }, ROOM_TIMEOUT_MS);
                     roomTimeouts.set(roomId, timeoutId);
                 }
             }
