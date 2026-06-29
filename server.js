@@ -56,7 +56,10 @@ io.on('connection', (socket) => {
         const nick = userNicks.get(socket.id) || 'Anonymous';
         socket.to(roomId).emit('room_notification', { roomId, text: `${nick} joined the room` });
         socket.emit('room_notification', { roomId, text: `Joined room ${roomId}` });
-        console.log(`${socket.id} joined ${roomId}`);
+        
+        // Broadcast updated member count to everyone in the room
+        io.to(roomId).emit('member_count', { count: rooms.get(roomId).size });
+        console.log(`${socket.id} joined ${roomId}. Members: ${rooms.get(roomId).size}`);
     });
 
     socket.on('chat_message', ({ roomId, message }) => {
@@ -76,6 +79,9 @@ io.on('connection', (socket) => {
             rooms.get(roomId).delete(socket.id);
             const nick = userNicks.get(socket.id) || 'Someone';
             socket.to(roomId).emit('room_notification', { roomId, text: `${nick} left the room` });
+            
+            // Broadcast updated member count to remaining members
+            io.to(roomId).emit('member_count', { count: rooms.get(roomId).size });
             
             if (rooms.get(roomId).size === 0) {
                 // If no one is left, schedule room deletion after 5 minutes
@@ -99,6 +105,9 @@ io.on('connection', (socket) => {
                 members.delete(socket.id);
                 const nick = userNicks.get(socket.id) || 'Someone';
                 socket.to(roomId).emit('room_notification', { roomId, text: `${nick} left (disconnected)` });
+                
+                // Broadcast updated member count to remaining members
+                io.to(roomId).emit('member_count', { count: members.size });
                 
                 if (members.size === 0 && !roomTimeouts.has(roomId)) {
                     const timeoutId = setTimeout(() => {
