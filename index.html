@@ -722,6 +722,7 @@
 
     let currentRoomId = null;
     let myNick = '';
+    let messageHistory = [];            // Local room message storage
 
     // DOM elements
     const homeView = document.getElementById('homeView');
@@ -743,7 +744,7 @@
     const nickInput = document.getElementById('nicknameInput');
     const updateNickBtn = document.getElementById('updateNickBtn');
     const qrContainer = document.getElementById('qrContainer');
-    const memberCountDisplay = document.getElementById('memberCountDisplay'); // NEW
+    const memberCountDisplay = document.getElementById('memberCountDisplay');
 
     // Handle create room loading state
     let createRoomTimeout = null;
@@ -843,6 +844,7 @@
         chatView.classList.add('hidden');
         if (currentRoomId) socket.emit('leave_room', { roomId: currentRoomId });
         currentRoomId = null;
+        messageHistory = []; // Clear the local client message history
         clearMessages();
         joinError.classList.add('hidden');
         qrContainer.innerHTML = '';
@@ -855,11 +857,14 @@
         chatView.classList.remove('hidden');
         currentRoomId = roomId;
         roomIdSpan.innerText = roomId;
-        memberCountDisplay.innerText = "..."; // Will quickly be updated by server
+        memberCountDisplay.innerText = "...";
         clearMessages();
         addSystemMessage(`Joined room.`);
         msgInput.focus();
         
+        // P2P History Sync Call
+        socket.emit('request_history', { roomId });
+
         const directLink = `${window.location.origin}?room=${roomId}`;
         qrContainer.innerHTML = '';
         qrContainer.style.cursor = 'pointer';
@@ -908,8 +913,8 @@
         msgInput.focus();
     }
 
+    // Connection Restoration Setup
     socket.on('connect', () => {
-        // Remove the "reconnecting" message if it exists
         const sysMessages = document.querySelectorAll('.system-message.reconnecting');
         sysMessages.forEach(msg => msg.remove());
         
@@ -917,17 +922,22 @@
         console.log('Connected to server');
     });
 
-    // 1. Connection error listener for the UI
-    socket.on('connect_error', () => {
-        if (!document.querySelector('.system-message.reconnecting')) {
-            addSystemMessage('Connection lost. Reconnecting...');
-            // Add a class so we can find/remove it later
+    socket.on('disconnect', () => {
+        if (currentRoomId && !document.querySelector('.system-message.reconnecting')) {
+            addSystemMessage('Disconnected from server. Attempting to reconnect...');
             const lastMsg = messagesDiv.lastElementChild;
-            if(lastMsg) lastMsg.classList.add('reconnecting');
+            if (lastMsg) lastMsg.classList.add('reconnecting');
         }
     });
 
-    // 2. Room error listener for Graceful Recovery
+    socket.on('connect_error', () => {
+        if (currentRoomId && !document.querySelector('.system-message.reconnecting')) {
+            addSystemMessage('Connection lost. Reconnecting...');
+            const lastMsg = messagesDiv.lastElementChild;
+            if (lastMsg) lastMsg.classList.add('reconnecting');
+        }
+    });
+
     socket.on('room_error', (data) => {
         addSystemMessage('⚠️ ' + data.error + ' Returning home...');
         setTimeout(() => {
@@ -937,8 +947,42 @@
     
     socket.on('new_message', (data) => {
         if (data.roomId === currentRoomId) {
+            // Commit to local client history
+            messageHistory.push({ nick: data.nick, message: data.message });
             addMessage(data.nick, data.message, data.nick === myNick);
         }
+    });
+
+    // P2P History Sync Handlers
+    socket.on('request_history', (data) => {
+        // Master peer packages their message history and returns it
+        socket.emit('send_history', {
+            requesterId: data.requesterId,
+            history: messageHistory
+        });
+    });
+
+    socket.on('history_response', (data) => {
+        const historicalMessages = data.history || [];
+        
+        // Sync local client history array seamlessly
+        messageHistory = [...historicalMessages, ...messageHistory];
+        
+        // Render history by safely prepending to prevent duplicate rendering of live streams
+        const fragment = document.createDocumentFragment();
+        historicalMessages.forEach(msg => {
+            const div = document.createElement('div');
+            div.className = 'message' + (msg.nick === myNick ? ' own' : '');
+            
+            const safeText = escapeHtml(msg.message);
+            const linkedText = linkify(safeText);
+            
+            div.innerHTML = `<span class="msg-name">${escapeHtml(msg.nick === myNick ? 'You' : msg.nick)}</span><div>${linkedText}</div>`;
+            fragment.appendChild(div);
+        });
+        
+        messagesDiv.insertBefore(fragment, messagesDiv.firstChild);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
     
     socket.on('room_notification', (notif) => {
@@ -947,7 +991,6 @@
         }
     });
 
-    // Handle new member counts from the server
     socket.on('member_count', (data) => {
         if (memberCountDisplay) {
             memberCountDisplay.innerText = data.count;
@@ -972,10 +1015,6 @@
     
     socket.on('nickname_changed', (data) => {
         if (data.newNick === myNick) addSystemMessage(`Name updated.`);
-    });
-    
-    socket.on('disconnect', () => {
-        if (currentRoomId) addSystemMessage('Disconnected.');
     });
 
     makeBtn.addEventListener('click', () => {
