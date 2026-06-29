@@ -13,7 +13,8 @@ const rooms = new Map();          // roomId -> Set(socketIds)
 const userNicks = new Map();      // socketId -> nick
 const roomTimeouts = new Map();   // roomId -> timeoutId (for delayed deletion)
 
-const ROOM_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours (increased from 5 minutes)
+// Set room survival to 24 hours
+const ROOM_TIMEOUT_MS = 24 * 60 * 60 * 1000; 
 
 function generateRoomId() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -78,6 +79,34 @@ io.on('connection', (socket) => {
         });
     });
 
+    // P2P History Sync Signalling:
+    // 1. Requester triggers request_history
+    socket.on('request_history', ({ roomId }) => {
+        if (!roomId || !rooms.has(roomId)) return;
+        const members = rooms.get(roomId);
+        
+        // If there are other members in the room, find the oldest active client (first insertion in Set)
+        if (members && members.size > 1) {
+            let masterId = null;
+            for (const memberId of members) {
+                if (memberId !== socket.id) {
+                    masterId = memberId;
+                    break;
+                }
+            }
+            if (masterId) {
+                console.log(`Relaying history request from ${socket.id} to master client ${masterId}`);
+                io.to(masterId).emit('request_history', { requesterId: socket.id });
+            }
+        }
+    });
+
+    // 2. Master client returns history, server relays it to the requester
+    socket.on('send_history', ({ requesterId, history }) => {
+        console.log(`Relaying chat history to requester ${requesterId}`);
+        io.to(requesterId).emit('history_response', { history });
+    });
+
     socket.on('leave_room', ({ roomId }) => {
         if (roomId && rooms.has(roomId)) {
             socket.leave(roomId);
@@ -130,7 +159,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// Serve the index.html file for local testing
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
