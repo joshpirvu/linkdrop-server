@@ -440,6 +440,18 @@
             display: block;
         }
 
+        .chat-link {
+            color: inherit;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        .chat-link:hover {
+            opacity: 0.8;
+        }
+
         .chat-input-area {
             display: flex;
             gap: 8px;
@@ -666,7 +678,7 @@
     const updateNickBtn = document.getElementById('updateNickBtn');
     const qrContainer = document.getElementById('qrContainer');
 
-    // Loading states
+    // Handle create room loading state
     let createRoomTimeout = null;
     function setCreateRoomLoading(isLoading) {
         if (isLoading) {
@@ -691,6 +703,7 @@
         }
     }
 
+    // Handle join room loading state
     let joinRoomTimeout = null;
     function setJoinRoomLoading(isLoading) {
         if (isLoading) {
@@ -727,10 +740,23 @@
         });
     }
 
+    function linkify(text) {
+        // Find URLs starting with http:// or https://
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        return text.replace(urlRegex, function(url) {
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="chat-link">${url}</a>`;
+        });
+    }
+
     function addMessage(name, text, isOwn = false) {
         const div = document.createElement('div');
         div.className = 'message' + (isOwn ? ' own' : '');
-        div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${escapeHtml(text)}</div>`;
+        
+        // Escape the text first to prevent XSS attacks, then linkify it
+        const safeText = escapeHtml(text);
+        const linkedText = linkify(safeText);
+        
+        div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${linkedText}</div>`;
         messagesDiv.appendChild(div);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
@@ -812,7 +838,9 @@
     });
     
     socket.on('room_notification', (notif) => {
-        if (notif.roomId === currentRoomId) addSystemMessage(notif.text);
+        if (notif.roomId === currentRoomId) {
+            addSystemMessage(notif.text);
+        }
     });
     
     socket.on('room_created', (data) => {
