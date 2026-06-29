@@ -205,31 +205,32 @@
         .main-content > div:not(.hidden) {
             animation: fadeIn 0.3s ease-out forwards;
         }
-		
-		::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
 
-		::-webkit-scrollbar-track {
-    background: transparent;
-}
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
 
-		::-webkit-scrollbar-thumb {
-    background-color: var(--card-border);
-    border-radius: 10px;
-    border: 2px solid var(--container-bg);
-}
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--card-border);
+            border-radius: 10px;
+            border: 2px solid var(--container-bg);
+        }
 
-		::-webkit-scrollbar-thumb:hover {
-    background-color: var(--btn-outline-border);
-}
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: var(--btn-outline-border);
+        }
 
-		/* For Firefox */
-	* {
-		scrollbar-width: thin;
-		scrollbar-color: var(--card-border) transparent;
-}
+        /* For Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--card-border) transparent;
+        }
 
         .btn {
             border: none;
@@ -385,9 +386,34 @@
             width: fit-content;
             margin-left: auto;
             margin-right: auto;
+            border: 2px solid transparent;
+            transition: border 0.2s;
+        }
+
+        /* NEW ACTIONS ROW - Holds Member count and Nick section together */
+        .room-actions-row {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+            flex-wrap: wrap;
+        }
+
+        .member-count-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: var(--nick-section-bg);
+            border: 1px solid var(--card-border);
+            padding: 0 1rem;
+            border-radius: 12px;
+            color: var(--btn-outline-text);
+            font-weight: 600;
+            font-size: 0.95rem;
         }
 
         .nick-section {
+            flex: 1;
             display: flex;
             gap: 8px;
             align-items: center;
@@ -405,6 +431,7 @@
             font-size: 0.9rem;
             outline: none;
             color: var(--btn-outline-text);
+            min-width: 0; /* Prevents overflow issues on mobile */
         }
 
         .nick-section button {
@@ -578,7 +605,7 @@
     
     <!-- Socket.io -->
     <script src="/socket.io/socket.io.js"></script>
-         <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%230a2b3e'/><text x='50' y='50' fill='white' font-family='sans-serif' font-weight='bold' font-size='50' text-anchor='middle' dominant-baseline='central'>JC</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%230a2b3e'/><text x='50' y='50' fill='white' font-family='sans-serif' font-weight='bold' font-size='50' text-anchor='middle' dominant-baseline='central'>JC</text></svg>">
 </head>
 <body class="dark">
 <div class="app-container">
@@ -625,9 +652,17 @@
                     <button class="copy-btn" id="copyRoomIdBtn"><i class="ph ph-copy"></i> Copy</button>
                 </div>
                 <div class="qr-container" id="qrContainer"></div>
-                <div class="nick-section">
-                    <input type="text" id="nicknameInput" placeholder="Name" maxlength="20">
-                    <button id="updateNickBtn">Set</button>
+                
+                <!-- NEW: Member count & Nick section combined -->
+                <div class="room-actions-row">
+                    <div class="member-count-box" title="Users in room">
+                        <i class="ph ph-users"></i>
+                        <span id="memberCountDisplay">1</span>
+                    </div>
+                    <div class="nick-section">
+                        <input type="text" id="nicknameInput" placeholder="Name" maxlength="20">
+                        <button id="updateNickBtn">Set</button>
+                    </div>
                 </div>
             </div>
             
@@ -702,6 +737,7 @@
     const nickInput = document.getElementById('nicknameInput');
     const updateNickBtn = document.getElementById('updateNickBtn');
     const qrContainer = document.getElementById('qrContainer');
+    const memberCountDisplay = document.getElementById('memberCountDisplay'); // NEW
 
     // Handle create room loading state
     let createRoomTimeout = null;
@@ -766,16 +802,9 @@
     }
 
     function linkify(text) {
-        // Regex to match URLs (including domains without http://)
-        // This looks for: 
-        // 1. explicit http/https 
-        // 2. OR words ending in .com, .net, .org, etc (basic domain matching)
-		// 3. Allows for longer TLDs (up to 20 chars) to support .academy, .solutions, etc.
         const urlRegex = /((https?:\/\/[^\s]+)|(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,20}(\/[^\s]*)?))/g;
         
         return text.replace(urlRegex, function(match) {
-            // If it already starts with http, use it as is.
-            // Otherwise, prepend https://
             const url = match.match(/^https?:\/\//) ? match : 'https://' + match;
             return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="chat-link">${match}</a>`;
         });
@@ -785,7 +814,6 @@
         const div = document.createElement('div');
         div.className = 'message' + (isOwn ? ' own' : '');
         
-        // Escape the text first to prevent XSS attacks, then linkify it
         const safeText = escapeHtml(text);
         const linkedText = linkify(safeText);
         
@@ -816,11 +844,12 @@
         setJoinRoomLoading(false);
     }
 
-        function showChat(roomId) {
+    function showChat(roomId) {
         homeView.classList.add('hidden');
         chatView.classList.remove('hidden');
         currentRoomId = roomId;
         roomIdSpan.innerText = roomId;
+        memberCountDisplay.innerText = "..."; // Will quickly be updated by server
         clearMessages();
         addSystemMessage(`Joined room.`);
         msgInput.focus();
@@ -830,7 +859,6 @@
         qrContainer.style.cursor = 'pointer';
         qrContainer.title = "Click to copy room link";
         
-        // Add click-to-copy functionality
         qrContainer.onclick = () => {
             navigator.clipboard.writeText(directLink).then(() => {
                 const originalTitle = qrContainer.title;
@@ -874,7 +902,6 @@
         msgInput.focus();
     }
 
-    // Socket events
     socket.on('connect', () => {
         updateNickname(myNick || generateRandomNick());
         console.log('Connected to server');
@@ -889,6 +916,13 @@
     socket.on('room_notification', (notif) => {
         if (notif.roomId === currentRoomId) {
             addSystemMessage(notif.text);
+        }
+    });
+
+    // Handle new member counts from the server
+    socket.on('member_count', (data) => {
+        if (memberCountDisplay) {
+            memberCountDisplay.innerText = data.count;
         }
     });
     
@@ -916,7 +950,6 @@
         if (currentRoomId) addSystemMessage('Disconnected.');
     });
 
-    // UI Listeners
     makeBtn.addEventListener('click', () => {
         setCreateRoomLoading(true);
         socket.emit('create_room');
@@ -952,7 +985,6 @@
     updateNickBtn.addEventListener('click', () => updateNickname(nickInput.value));
     nickInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') updateNickname(nickInput.value); });
 
-    // Auto-join via URL parameter
     const urlParams = new URLSearchParams(window.location.search);
     const roomFromUrl = urlParams.get('room');
     if (roomFromUrl) {
