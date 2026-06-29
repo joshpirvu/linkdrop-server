@@ -3,15 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>LinkDrop · fast link transfer</title>
+    <title>JoshChat</title>
+    
     <!-- QR Code library -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
         }
 
         /* Light theme */
@@ -48,7 +58,7 @@
             --nick-section-bg: white;
         }
 
-        /* Dark theme - improved contrast */
+        /* Dark theme */
         body.dark {
             --bg-gradient-start: #0f1722;
             --bg-gradient-end: #0a0f18;
@@ -88,21 +98,22 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 0.8rem;
+            padding: 1rem;
         }
 
         .app-container {
             max-width: 700px;
             width: 100%;
             background: var(--container-bg);
-            border-radius: 2rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
             overflow: hidden;
+            border: 1px solid var(--card-border);
         }
 
         .header {
             background: var(--header-bg);
-            padding: 1rem 1.5rem;
+            padding: 1.2rem 1.5rem;
             color: var(--header-text);
             display: flex;
             justify-content: space-between;
@@ -112,40 +123,87 @@
         }
 
         .header h1 {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 8px;
+            letter-spacing: -0.02em;
         }
 
-        .header h1 span {
-            background: #ffcd3c;
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 30px;
-            color: #0a2b3e;
-        }
-
-        .theme-toggle {
-            background: rgba(255,255,255,0.15);
-            border: none;
-            font-size: 1.3rem;
+        /* Modern Theme Toggle Switch */
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 32px;
             cursor: pointer;
-            border-radius: 40px;
-            width: 40px;
-            height: 40px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .theme-switch .slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--btn-outline-border);
+            border-radius: 32px;
+            transition: background-color 0.3s ease;
             display: flex;
             align-items: center;
-            justify-content: center;
-            transition: 0.2s;
+            justify-content: space-between;
+            padding: 0 8px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
-        .theme-toggle:hover {
-            background: rgba(255,255,255,0.3);
+
+        body.dark .theme-switch .slider {
+            background-color: var(--chat-input-bg);
+            border: 1px solid var(--card-border);
+        }
+
+        .theme-switch .slider i {
+            font-size: 16px;
+            color: var(--footer-text);
+            z-index: 1;
+        }
+
+        .theme-switch .knob {
+            position: absolute;
+            height: 24px;
+            width: 24px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+
+        .theme-switch input:checked + .slider .knob {
+            transform: translateX(28px);
+            background-color: var(--btn-primary-bg);
         }
 
         .main-content {
-            padding: 1.2rem;
+            padding: 1.5rem;
+        }
+
+        /* Entry Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .main-content > div:not(.hidden) {
+            animation: fadeIn 0.3s ease-out forwards;
         }
 
         .btn {
@@ -154,30 +212,41 @@
             padding: 0.9rem 1.5rem;
             font-size: 1rem;
             font-weight: 600;
-            border-radius: 3rem;
+            border-radius: 12px;
             cursor: pointer;
             border: 1px solid var(--card-border);
             color: var(--btn-outline-text);
-            transition: 0.2s;
+            transition: all 0.2s;
             width: 100%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
         }
+        
+        .btn:hover {
+            background: var(--btn-outline-hover-bg);
+        }
+
         .btn-primary {
             background: var(--btn-primary-bg);
             color: white;
             border: none;
         }
-        .btn-primary:active {
-            transform: scale(0.97);
+        
+        .btn-primary:hover {
+            background: var(--btn-primary-hover);
         }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
         .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
-        /* Spinner animation */
+
         .spinner {
             display: inline-block;
             width: 1rem;
@@ -187,238 +256,320 @@
             border-top-color: white;
             animation: spin 0.6s linear infinite;
         }
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
         .btn .spinner {
             margin-right: 6px;
         }
+
         .join-area {
             background: var(--join-area-bg);
-            border-radius: 1.5rem;
+            border-radius: 12px;
             padding: 1.2rem;
             margin-top: 1rem;
+            border: 1px solid var(--card-border);
         }
+
         .join-area label {
             color: var(--btn-outline-text);
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 0.9rem;
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.8rem;
         }
+
         .join-row {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
         }
+
         .join-row input {
             flex: 1;
-            padding: 0.9rem;
-            border-radius: 3rem;
+            padding: 0.9rem 1rem;
+            border-radius: 12px;
             border: 1px solid var(--input-border);
             background: var(--card-bg);
             color: var(--btn-outline-text);
             font-size: 1rem;
             outline: none;
+            transition: all 0.2s;
         }
+
         .join-row input:focus {
             border-color: var(--btn-primary-bg);
             box-shadow: 0 0 0 3px var(--input-focus-ring);
         }
+
         .room-header {
             display: flex;
             flex-direction: column;
             gap: 12px;
             background: var(--join-area-bg);
             padding: 1rem;
-            border-radius: 1.5rem;
+            border-radius: 12px;
             margin-bottom: 1rem;
+            border: 1px solid var(--card-border);
         }
+
         .room-id-box {
             background: var(--room-id-box-bg);
-            padding: 0.6rem 1rem;
-            border-radius: 3rem;
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
             font-family: monospace;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 1.1rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 10px;
-            backdrop-filter: blur(4px);
             color: var(--btn-outline-text);
+            border: 1px solid var(--card-border);
         }
+
         .copy-btn {
-            background: none;
-            border: none;
-            font-size: 1rem;
-            font-weight: normal;
+            background: var(--btn-outline-hover-bg);
+            border: 1px solid var(--btn-outline-border);
+            font-size: 0.9rem;
+            font-weight: 500;
             cursor: pointer;
             color: var(--btn-outline-text);
-            padding: 0.2rem 0.8rem;
-            border-radius: 2rem;
-            background: rgba(255,255,255,0.1);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
         }
+        
+        .copy-btn:hover {
+            background: var(--card-border);
+        }
+
         .qr-container {
             display: flex;
             justify-content: center;
             margin: 10px 0;
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
         }
+
         .nick-section {
             display: flex;
             gap: 8px;
             align-items: center;
             background: var(--nick-section-bg);
-            padding: 0.4rem 0.8rem;
-            border-radius: 3rem;
+            padding: 0.5rem 0.8rem;
+            border-radius: 12px;
             border: 1px solid var(--card-border);
         }
+
         .nick-section input {
             background: transparent;
             border: none;
-            padding: 0.4rem 0;
-            width: 110px;
-            font-size: 0.85rem;
+            padding: 0.2rem 0;
+            flex: 1;
+            font-size: 0.9rem;
             outline: none;
             color: var(--btn-outline-text);
         }
+
         .nick-section button {
             background: var(--btn-primary-bg);
             border: none;
-            padding: 0.2rem 0.8rem;
-            border-radius: 2rem;
+            padding: 0.4rem 1rem;
+            border-radius: 8px;
             color: white;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
+            font-weight: 600;
             cursor: pointer;
+            transition: 0.2s;
         }
+
+        .nick-section button:active {
+            transform: scale(0.96);
+        }
+
         .messages-area {
             background: var(--card-bg);
-            border-radius: 1.5rem;
+            border-radius: 12px;
             border: 1px solid var(--card-border);
-            height: 55vh;
+            height: 50vh;
             overflow-y: auto;
-            padding: 0.8rem;
+            padding: 1rem;
             margin: 1rem 0;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 12px;
         }
+
         .message {
             max-width: 85%;
-            padding: 0.6rem 1rem;
-            border-radius: 1.5rem;
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+            border-bottom-left-radius: 4px;
             background: var(--message-bg);
             align-self: flex-start;
             word-break: break-word;
             color: var(--message-text);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            font-size: 0.95rem;
+            line-height: 1.4;
         }
+
         .message.own {
             background: var(--message-own-bg);
             align-self: flex-end;
-            color: var(--message-text);
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 4px;
         }
+
         .message .msg-name {
             font-weight: 700;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: var(--message-name);
             margin-bottom: 4px;
             display: block;
         }
+
         .chat-input-area {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
         }
+
         .chat-input-area input {
-            flex: 2;
-            padding: 0.9rem;
-            border-radius: 3rem;
+            flex: 1;
+            padding: 0.9rem 1rem;
+            border-radius: 12px;
             border: 1px solid var(--input-border);
             background: var(--card-bg);
             color: var(--btn-outline-text);
             font-size: 1rem;
             outline: none;
+            transition: all 0.2s;
         }
+
         .chat-input-area input:focus {
             border-color: var(--btn-primary-bg);
+            box-shadow: 0 0 0 3px var(--input-focus-ring);
         }
+
         .chat-input-area button {
             background: var(--btn-primary-bg);
             border: none;
-            padding: 0 1.2rem;
-            border-radius: 3rem;
+            padding: 0 1.5rem;
+            border-radius: 12px;
             color: white;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
         }
+
         .chat-input-area button:active {
             transform: scale(0.96);
         }
+
         .leave-btn {
             background: var(--leave-btn-bg);
             color: var(--leave-btn-text);
             width: 100%;
-            margin-top: 0.8rem;
+            margin-top: 1rem;
             border: none;
-            padding: 0.8rem;
-            border-radius: 3rem;
+            padding: 0.9rem;
+            border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
+
+        .leave-btn:hover {
+            opacity: 0.9;
+        }
+
         .system-message {
             text-align: center;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
+            font-weight: 500;
             background: var(--system-message-bg);
-            padding: 0.3rem 0.8rem;
+            padding: 0.4rem 1rem;
             border-radius: 2rem;
             width: fit-content;
             margin: 0 auto;
             color: var(--system-message-text);
         }
+
         .error-message {
             background: var(--error-bg);
             color: var(--error-text);
             padding: 0.6rem 1rem;
-            border-radius: 2rem;
+            border-radius: 8px;
             font-size: 0.85rem;
             text-align: center;
             margin-top: 1rem;
             font-weight: 500;
         }
-        .hidden { display: none; }
+
+        .hidden { display: none !important; }
+
         footer {
             text-align: center;
-            font-size: 0.7rem;
-            padding: 0.8rem;
+            font-size: 0.8rem;
+            padding: 1.2rem;
             color: var(--footer-text);
             border-top: 1px solid var(--card-border);
+            font-weight: 500;
         }
+
         @media (max-width: 480px) {
-            .main-content { padding: 0.8rem; }
+            .main-content { padding: 1rem; }
             .btn, .join-row input, .chat-input-area input { font-size: 1rem; padding: 0.8rem; }
         }
     </style>
+    
+    <!-- Socket.io -->
     <script src="/socket.io/socket.io.js"></script>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📡</text></svg>">
 </head>
 <body class="dark">
 <div class="app-container">
     <div class="header">
-        <h1>📡 LinkDrop <span>fast link</span></h1>
-        <button class="theme-toggle" id="themeToggleBtn">☀️</button>
+        <h1><i class="ph ph-broadcast"></i> JoshChat</h1>
+        
+        <label class="theme-switch" for="themeToggle">
+            <input type="checkbox" id="themeToggle" />
+            <div class="slider">
+                <i class="ph ph-sun"></i>
+                <i class="ph ph-moon"></i>
+                <div class="knob"></div>
+            </div>
+        </label>
     </div>
+
     <div class="main-content">
+        <!-- Home View -->
         <div id="homeView">
             <div class="home-panel">
                 <button class="btn btn-primary" id="makeRoomBtn">
-                    <span id="makeBtnText">✨ Create room</span>
+                    <span id="makeBtnText">Create Room</span>
                     <span id="makeBtnSpinner" class="spinner" style="display: none;"></span>
                 </button>
                 <div class="join-area">
-                    <label>🔗 Or join an existing room</label>
+                    <label>Join a room</label>
                     <div class="join-row">
-                        <input type="text" id="joinRoomIdInput" placeholder="Ex: A1B2C3" autocomplete="off">
+                        <input type="text" id="joinRoomIdInput" placeholder="Room Code" autocomplete="off">
                         <button class="btn" id="joinRoomBtn">
                             <span id="joinBtnText">Join</span>
                             <span id="joinBtnSpinner" class="spinner" style="display: none;"></span>
@@ -428,11 +579,13 @@
                 </div>
             </div>
         </div>
+
+        <!-- Chat View -->
         <div id="chatView" class="hidden">
             <div class="room-header">
                 <div class="room-id-box">
-                    <span>🆔 <strong id="roomIdDisplay">---</strong></span>
-                    <button class="copy-btn" id="copyRoomIdBtn">📋 Copy ID</button>
+                    <span>ID: <strong id="roomIdDisplay">---</strong></span>
+                    <button class="copy-btn" id="copyRoomIdBtn"><i class="ph ph-copy"></i> Copy</button>
                 </div>
                 <div class="qr-container" id="qrContainer"></div>
                 <div class="nick-section">
@@ -440,41 +593,52 @@
                     <button id="updateNickBtn">Set</button>
                 </div>
             </div>
+            
             <div class="messages-area" id="messagesContainer">
-                <div class="system-message">✨ Connected. Send any link.</div>
+                <!-- Messages will appear here -->
             </div>
+            
             <div class="chat-input-area">
-                <input type="text" id="messageInput" placeholder="Type a link or message...">
+                <input type="text" id="messageInput" placeholder="Message..." autocomplete="off">
                 <button id="sendMsgBtn">Send</button>
             </div>
-            <button class="leave-btn" id="leaveRoomBtn">🚪 Leave room</button>
+            
+            <button class="leave-btn" id="leaveRoomBtn"><i class="ph ph-sign-out"></i> Leave Room</button>
         </div>
     </div>
-    <footer>🔐 No account · Scan QR for direct link · Made By Josh Pirvu</footer>
+    <footer>Made by Josh Pirvu</footer>
 </div>
+
 <script>
-    // Theme dark/light
-    const themeToggle = document.getElementById('themeToggleBtn');
+    // Theme dark/light logic
+    const themeToggleInput = document.getElementById('themeToggle');
+
     function setTheme(theme) {
         if (theme === 'dark') {
             document.body.classList.add('dark');
             localStorage.setItem('linkdrop-theme', 'dark');
-            themeToggle.innerHTML = '☀️';
+            themeToggleInput.checked = true;
         } else {
             document.body.classList.remove('dark');
             localStorage.setItem('linkdrop-theme', 'light');
-            themeToggle.innerHTML = '🌙';
+            themeToggleInput.checked = false;
         }
     }
+
+    // Load saved theme on startup
     const savedTheme = localStorage.getItem('linkdrop-theme');
-    if (savedTheme === 'light') setTheme('light');
-    else setTheme('dark');
-    themeToggle.addEventListener('click', () => {
-        const isDark = document.body.classList.contains('dark');
-        setTheme(isDark ? 'light' : 'dark');
+    if (savedTheme === 'light') {
+        setTheme('light');
+    } else {
+        setTheme('dark');
+    }
+
+    // Listen for the toggle switch changing
+    themeToggleInput.addEventListener('change', (e) => {
+        setTheme(e.target.checked ? 'dark' : 'light');
     });
 
-    // --- Socket.io with backend URL (Render) ---
+    // --- Socket.io ---
     const SOCKET_URL = 'https://linkdrop-server-k92j.onrender.com';
     const socket = io(SOCKET_URL);
 
@@ -502,7 +666,7 @@
     const updateNickBtn = document.getElementById('updateNickBtn');
     const qrContainer = document.getElementById('qrContainer');
 
-    // Helper pentru loading state pe butonul Create Room
+    // Loading states
     let createRoomTimeout = null;
     function setCreateRoomLoading(isLoading) {
         if (isLoading) {
@@ -513,7 +677,7 @@
             createRoomTimeout = setTimeout(() => {
                 if (makeBtn.disabled) {
                     setCreateRoomLoading(false);
-                    addSystemMessage('⚠️ Server not responding. Please try again.');
+                    addSystemMessage('Connection timeout.');
                 }
             }, 10000);
         } else {
@@ -527,7 +691,6 @@
         }
     }
 
-    // Helper pentru loading state pe butonul Join Room
     let joinRoomTimeout = null;
     function setJoinRoomLoading(isLoading) {
         if (isLoading) {
@@ -538,7 +701,7 @@
             joinRoomTimeout = setTimeout(() => {
                 if (joinBtn.disabled) {
                     setJoinRoomLoading(false);
-                    addSystemMessage('⚠️ Server not responding. Please try again.');
+                    addSystemMessage('Connection timeout.');
                     joinError.innerText = 'Server timeout. Please try again.';
                     joinError.classList.remove('hidden');
                     setTimeout(() => joinError.classList.add('hidden'), 4000);
@@ -590,7 +753,6 @@
         clearMessages();
         joinError.classList.add('hidden');
         qrContainer.innerHTML = '';
-        // Reset any loading states when returning home
         setCreateRoomLoading(false);
         setJoinRoomLoading(false);
     }
@@ -601,18 +763,19 @@
         currentRoomId = roomId;
         roomIdSpan.innerText = roomId;
         clearMessages();
-        addSystemMessage(`📡 In room: ${roomId}`);
+        addSystemMessage(`Joined room.`);
         msgInput.focus();
+        
         const directLink = `${window.location.origin}?room=${roomId}`;
-        addSystemMessage(`🔗 Direct link: ${directLink}`);
         qrContainer.innerHTML = '';
         try {
             new QRCode(qrContainer, {
                 text: directLink,
-                width: 120,
-                height: 120
+                width: 100,
+                height: 100,
+                colorDark: "#1a2332",
+                colorLight: "#ffffff"
             });
-            addSystemMessage(`📱 Scan the QR code to quickly join from another device.`);
         } catch(e) { console.warn("QR error", e); }
     }
 
@@ -639,42 +802,49 @@
     // Socket events
     socket.on('connect', () => {
         updateNickname(myNick || generateRandomNick());
-        addSystemMessage('✅ Connected to server');
+        console.log('Connected to server');
     });
+    
     socket.on('new_message', (data) => {
         if (data.roomId === currentRoomId) {
             addMessage(data.nick, data.message, data.nick === myNick);
         }
     });
+    
     socket.on('room_notification', (notif) => {
         if (notif.roomId === currentRoomId) addSystemMessage(notif.text);
     });
+    
     socket.on('room_created', (data) => {
         setCreateRoomLoading(false);
         showChat(data.roomId);
-        addSystemMessage(`🌟 Room created! ID: ${data.roomId}`);
     });
+    
     socket.on('join_result', (data) => {
         setJoinRoomLoading(false);
         if (data.success) {
             showChat(data.roomId);
-            addSystemMessage(`✅ You joined room ${data.roomId}`);
         } else {
             joinError.innerText = data.error || 'Room does not exist';
             joinError.classList.remove('hidden');
             setTimeout(() => joinError.classList.add('hidden'), 3000);
         }
     });
+    
     socket.on('nickname_changed', (data) => {
-        if (data.newNick === myNick) addSystemMessage(`🟢 Name set: ${myNick}`);
+        if (data.newNick === myNick) addSystemMessage(`Name updated.`);
     });
-    socket.on('disconnect', () => addSystemMessage('🔌 Disconnected from server'));
+    
+    socket.on('disconnect', () => {
+        if (currentRoomId) addSystemMessage('Disconnected.');
+    });
 
     // UI Listeners
     makeBtn.addEventListener('click', () => {
         setCreateRoomLoading(true);
         socket.emit('create_room');
     });
+    
     joinBtn.addEventListener('click', () => {
         const rid = joinInput.value.trim().toUpperCase();
         if (!rid) {
@@ -686,15 +856,22 @@
         setJoinRoomLoading(true);
         socket.emit('join_room', { roomId: rid });
     });
+    
     sendBtn.addEventListener('click', sendMessage);
     msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     leaveBtn.addEventListener('click', showHome);
+    
     copyRoomBtn.addEventListener('click', () => {
         if (currentRoomId) {
             navigator.clipboard.writeText(currentRoomId);
-            addSystemMessage('📋 ID copied');
+            const originalText = copyRoomBtn.innerHTML;
+            copyRoomBtn.innerHTML = '<i class="ph ph-check"></i> Copied';
+            setTimeout(() => {
+                copyRoomBtn.innerHTML = originalText;
+            }, 2000);
         }
     });
+    
     updateNickBtn.addEventListener('click', () => updateNickname(nickInput.value));
     nickInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') updateNickname(nickInput.value); });
 
