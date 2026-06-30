@@ -310,11 +310,11 @@
         .join-row {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
         }
 
         .join-row input {
             flex: 1;
+            min-width: 0;
             padding: 0.9rem 1rem;
             border-radius: 12px;
             border: 1px solid var(--input-border);
@@ -328,6 +328,11 @@
         .join-row input:focus {
             border-color: var(--btn-primary-bg);
             box-shadow: 0 0 0 3px var(--input-focus-ring);
+        }
+
+        .join-row .btn {
+            width: auto;
+            flex-shrink: 0;
         }
 
         .room-header {
@@ -395,7 +400,6 @@
             display: flex;
             gap: 8px;
             align-items: stretch;
-            flex-wrap: wrap;
         }
 
         .member-count-box {
@@ -410,6 +414,7 @@
             color: var(--btn-outline-text);
             font-weight: 600;
             font-size: 0.95rem;
+            flex-shrink: 0;
         }
 
         .nick-section {
@@ -421,6 +426,7 @@
             padding: 0.5rem 0.8rem;
             border-radius: 12px;
             border: 1px solid var(--card-border);
+            min-width: 0;
         }
 
         .nick-section input {
@@ -444,10 +450,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
-        }
-
-        .nick-section button:active {
-            transform: scale(0.96);
+            flex-shrink: 0;
         }
 
         .messages-area {
@@ -507,11 +510,11 @@
         .chat-input-area {
             display: flex;
             gap: 8px;
-            flex-wrap: wrap;
         }
 
         .chat-input-area input {
             flex: 1;
+            min-width: 0;
             padding: 0.9rem 1rem;
             border-radius: 12px;
             border: 1px solid var(--input-border);
@@ -536,10 +539,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
-        }
-
-        .chat-input-area button:active {
-            transform: scale(0.96);
+            flex-shrink: 0;
         }
 
         .leave-btn {
