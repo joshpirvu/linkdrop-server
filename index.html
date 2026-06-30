@@ -5,13 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>JoshChat</title>
     
-    <!-- QR Code library -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    
-    <!-- Phosphor Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -131,7 +128,6 @@
             letter-spacing: -0.02em;
         }
 
-        /* Modern Theme Toggle Switch */
         .theme-switch {
             position: relative;
             display: inline-block;
@@ -149,10 +145,7 @@
 
         .theme-switch .slider {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background-color: var(--btn-outline-border);
             border-radius: 32px;
             transition: background-color 0.3s ease;
@@ -196,7 +189,6 @@
             padding: 1.5rem;
         }
 
-        /* Entry Animation */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
@@ -206,31 +198,15 @@
             animation: fadeIn 0.3s ease-out forwards;
         }
         
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb {
             background-color: var(--card-border);
             border-radius: 10px;
             border: 2px solid var(--container-bg);
         }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background-color: var(--btn-outline-border);
-        }
-
-        /* For Firefox */
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: var(--card-border) transparent;
-        }
+        ::-webkit-scrollbar-thumb:hover { background-color: var(--btn-outline-border); }
+        * { scrollbar-width: thin; scrollbar-color: var(--card-border) transparent; }
 
         .btn {
             border: none;
@@ -250,28 +226,11 @@
             gap: 8px;
         }
         
-        .btn:hover {
-            background: var(--btn-outline-hover-bg);
-        }
-
-        .btn-primary {
-            background: var(--btn-primary-bg);
-            color: white;
-            border: none;
-        }
-        
-        .btn-primary:hover {
-            background: var(--btn-primary-hover);
-        }
-
-        .btn-primary:active {
-            transform: scale(0.98);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+        .btn:hover { background: var(--btn-outline-hover-bg); }
+        .btn-primary { background: var(--btn-primary-bg); color: white; border: none; }
+        .btn-primary:hover { background: var(--btn-primary-hover); }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .spinner {
             display: inline-block;
@@ -283,13 +242,8 @@
             animation: spin 0.6s linear infinite;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .btn .spinner {
-            margin-right: 6px;
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn .spinner { margin-right: 6px; }
 
         .join-area {
             background: var(--join-area-bg);
@@ -307,57 +261,35 @@
             margin-bottom: 0.8rem;
         }
 
-        .join-row {
-            display: flex;
-            gap: 10px;
-        }
-
+        .join-row { display: flex; gap: 10px; }
         .join-row input {
-            flex: 1;
-            min-width: 0;
+            flex: 1; min-width: 0;
             padding: 0.9rem 1rem;
             border-radius: 12px;
             border: 1px solid var(--input-border);
             background: var(--card-bg);
             color: var(--btn-outline-text);
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.2s;
+            font-size: 1rem; outline: none; transition: all 0.2s;
         }
-
         .join-row input:focus {
             border-color: var(--btn-primary-bg);
             box-shadow: 0 0 0 3px var(--input-focus-ring);
         }
-
-        .join-row .btn {
-            width: auto;
-            flex-shrink: 0;
-        }
+        .join-row .btn { width: auto; flex-shrink: 0; }
 
         .room-header {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            display: flex; flex-direction: column; gap: 12px;
             background: var(--join-area-bg);
-            padding: 1rem;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            border: 1px solid var(--card-border);
+            padding: 1rem; border-radius: 12px;
+            margin-bottom: 1rem; border: 1px solid var(--card-border);
         }
 
         .room-id-box {
             background: var(--room-id-box-bg);
-            padding: 0.8rem 1rem;
-            border-radius: 12px;
-            font-family: monospace;
-            font-weight: 600;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
+            padding: 0.8rem 1rem; border-radius: 12px;
+            font-family: monospace; font-weight: 600; font-size: 1.1rem;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 10px;
             color: var(--btn-outline-text);
             border: 1px solid var(--card-border);
         }
@@ -365,265 +297,154 @@
         .copy-btn {
             background: var(--btn-outline-hover-bg);
             border: 1px solid var(--btn-outline-border);
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
+            font-size: 0.9rem; font-weight: 500; cursor: pointer;
             color: var(--btn-outline-text);
-            padding: 0.4rem 0.8rem;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
+            padding: 0.4rem 0.8rem; border-radius: 8px;
+            display: flex; align-items: center; gap: 6px; transition: all 0.2s;
         }
-        
-        .copy-btn:hover {
-            background: var(--card-border);
-        }
+        .copy-btn:hover { background: var(--card-border); }
 
         .qr-container {
-            display: flex;
-            justify-content: center;
-            margin: 10px 0;
-            background: white;
-            padding: 10px;
-            border-radius: 12px;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-            border: 2px solid transparent;
-            transition: border 0.2s;
+            display: flex; justify-content: center; margin: 10px 0;
+            background: white; padding: 10px; border-radius: 12px;
+            width: fit-content; margin-left: auto; margin-right: auto;
+            border: 2px solid transparent; transition: border 0.2s;
         }
 
-        /* NEW ACTIONS ROW - Holds Member count and Nick section together */
-        .room-actions-row {
-            display: flex;
-            gap: 8px;
-            align-items: stretch;
-        }
+        .room-actions-row { display: flex; gap: 8px; align-items: stretch; }
 
         .member-count-box {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
             background: var(--nick-section-bg);
             border: 1px solid var(--card-border);
-            padding: 0 1rem;
-            border-radius: 12px;
-            color: var(--btn-outline-text);
-            font-weight: 600;
-            font-size: 0.95rem;
+            padding: 0 1rem; border-radius: 12px;
+            color: var(--btn-outline-text); font-weight: 600; font-size: 0.95rem;
             flex-shrink: 0;
         }
 
         .nick-section {
-            flex: 1;
-            display: flex;
-            gap: 8px;
-            align-items: center;
+            flex: 1; display: flex; gap: 8px; align-items: center;
             background: var(--nick-section-bg);
-            padding: 0.5rem 0.8rem;
-            border-radius: 12px;
-            border: 1px solid var(--card-border);
-            min-width: 0;
+            padding: 0.5rem 0.8rem; border-radius: 12px;
+            border: 1px solid var(--card-border); min-width: 0;
         }
-
         .nick-section input {
-            background: transparent;
-            border: none;
-            padding: 0.2rem 0;
-            flex: 1;
-            font-size: 0.9rem;
-            outline: none;
-            color: var(--btn-outline-text);
-            min-width: 0; /* Prevents overflow issues on mobile */
+            background: transparent; border: none; padding: 0.2rem 0; flex: 1;
+            font-size: 0.9rem; outline: none; color: var(--btn-outline-text); min-width: 0;
         }
-
         .nick-section button {
-            background: var(--btn-primary-bg);
-            border: none;
-            padding: 0.4rem 1rem;
-            border-radius: 8px;
-            color: white;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            flex-shrink: 0;
+            background: var(--btn-primary-bg); border: none; padding: 0.4rem 1rem;
+            border-radius: 8px; color: white; font-size: 0.8rem; font-weight: 600;
+            cursor: pointer; transition: 0.2s; flex-shrink: 0;
         }
+        .nick-section button:active { transform: scale(0.96); }
+
+        .chat-content-wrapper { position: relative; }
 
         .messages-area {
-            background: var(--card-bg);
-            border-radius: 12px;
-            border: 1px solid var(--card-border);
-            height: 50vh;
-            overflow-y: auto;
-            padding: 1rem;
-            margin: 1rem 0;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            background: var(--card-bg); border-radius: 12px;
+            border: 1px solid var(--card-border); height: 50vh;
+            overflow-y: auto; padding: 1rem; margin: 1rem 0;
+            display: flex; flex-direction: column; gap: 12px;
         }
 
         .message {
-            max-width: 85%;
-            padding: 0.8rem 1rem;
-            border-radius: 12px;
-            border-bottom-left-radius: 4px;
-            background: var(--message-bg);
-            align-self: flex-start;
-            word-break: break-word;
-            color: var(--message-text);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            font-size: 0.95rem;
-            line-height: 1.4;
+            max-width: 85%; padding: 0.8rem 1rem;
+            border-radius: 12px; border-bottom-left-radius: 4px;
+            background: var(--message-bg); align-self: flex-start;
+            word-break: break-word; color: var(--message-text);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); font-size: 0.95rem; line-height: 1.4;
         }
-
         .message.own {
-            background: var(--message-own-bg);
-            align-self: flex-end;
-            border-bottom-left-radius: 12px;
-            border-bottom-right-radius: 4px;
+            background: var(--message-own-bg); align-self: flex-end;
+            border-bottom-left-radius: 12px; border-bottom-right-radius: 4px;
         }
-
         .message .msg-name {
-            font-weight: 700;
-            font-size: 0.75rem;
-            color: var(--message-name);
-            margin-bottom: 4px;
-            display: block;
+            font-weight: 700; font-size: 0.75rem; color: var(--message-name);
+            margin-bottom: 4px; display: block;
         }
 
-        .chat-link {
-            color: inherit;
-            text-decoration: underline;
-            text-underline-offset: 3px;
-            font-weight: 600;
-            word-break: break-all;
+        .message strong { font-weight: 700; }
+        .message em { font-style: italic; }
+        .message code {
+            background: rgba(0,0,0,0.08); padding: 2px 4px; border-radius: 4px;
+            font-family: monospace; font-size: 0.9em;
         }
+        body.dark .message code { background: rgba(255,255,255,0.15); }
 
-        .chat-link:hover {
-            opacity: 0.8;
+        .chat-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; font-weight: 600; word-break: break-all; }
+        .chat-link:hover { opacity: 0.8; }
+
+        .typing-indicator {
+            position: absolute; bottom: 80px; left: 1rem; font-size: 0.75rem; color: var(--footer-text);
+            background: var(--card-bg); padding: 0.4rem 0.8rem; border-radius: 12px;
+            border: 1px solid var(--card-border); box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: opacity 0.2s, transform 0.2s; z-index: 5;
         }
+        .typing-indicator.hidden { opacity: 0; transform: translateY(10px); pointer-events: none; }
 
-        .chat-input-area {
-            display: flex;
-            gap: 8px;
+        .scroll-bottom-btn {
+            position: absolute; bottom: 80px; right: 1rem;
+            background: var(--btn-primary-bg); color: white; border: none; border-radius: 50%;
+            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0;
+            transform: translateY(10px); pointer-events: none; transition: 0.2s; z-index: 10;
         }
+        .scroll-bottom-btn.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
+        .chat-input-area { display: flex; gap: 8px; }
         .chat-input-area input {
-            flex: 1;
-            min-width: 0;
-            padding: 0.9rem 1rem;
-            border-radius: 12px;
-            border: 1px solid var(--input-border);
-            background: var(--card-bg);
-            color: var(--btn-outline-text);
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.2s;
+            flex: 1; min-width: 0; padding: 0.9rem 1rem; border-radius: 12px;
+            border: 1px solid var(--input-border); background: var(--card-bg);
+            color: var(--btn-outline-text); font-size: 1rem; outline: none; transition: all 0.2s;
         }
-
-        .chat-input-area input:focus {
-            border-color: var(--btn-primary-bg);
-            box-shadow: 0 0 0 3px var(--input-focus-ring);
-        }
-
+        .chat-input-area input:focus { border-color: var(--btn-primary-bg); box-shadow: 0 0 0 3px var(--input-focus-ring); }
         .chat-input-area button {
-            background: var(--btn-primary-bg);
-            border: none;
-            padding: 0 1.5rem;
-            border-radius: 12px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            flex-shrink: 0;
+            background: var(--btn-primary-bg); border: none; padding: 0 1.5rem;
+            border-radius: 12px; color: white; font-weight: 600; cursor: pointer;
+            transition: 0.2s; flex-shrink: 0;
         }
+        .chat-input-area button:active { transform: scale(0.96); }
 
         .leave-btn {
-            background: var(--leave-btn-bg);
-            color: var(--leave-btn-text);
-            width: 100%;
-            margin-top: 1rem;
-            border: none;
-            padding: 0.9rem;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            background: var(--leave-btn-bg); color: var(--leave-btn-text); width: 100%;
+            margin-top: 1rem; border: none; padding: 0.9rem; border-radius: 12px;
+            font-weight: 600; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-
-        .leave-btn:hover {
-            opacity: 0.9;
-        }
+        .leave-btn:hover { opacity: 0.9; }
 
         .system-message {
-            text-align: center;
-            font-size: 0.75rem;
-            font-weight: 500;
-            background: var(--system-message-bg);
-            padding: 0.4rem 1rem;
-            border-radius: 2rem;
-            width: fit-content;
-            margin: 0 auto;
-            color: var(--system-message-text);
+            text-align: center; font-size: 0.75rem; font-weight: 500;
+            background: var(--system-message-bg); padding: 0.4rem 1rem; border-radius: 2rem;
+            width: fit-content; margin: 0 auto; color: var(--system-message-text);
         }
 
         .error-message {
-            background: var(--error-bg);
-            color: var(--error-text);
-            padding: 0.6rem 1rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            text-align: center;
-            margin-top: 1rem;
-            font-weight: 500;
+            background: var(--error-bg); color: var(--error-text); padding: 0.6rem 1rem;
+            border-radius: 8px; font-size: 0.85rem; text-align: center; margin-top: 1rem; font-weight: 500;
         }
 
         .hidden { display: none !important; }
-
-        footer {
-            text-align: center;
-            font-size: 0.8rem;
-            padding: 1.2rem;
-            color: var(--footer-text);
-            border-top: 1px solid var(--card-border);
-            font-weight: 500;
-        }
+        footer { text-align: center; font-size: 0.8rem; padding: 1.2rem; color: var(--footer-text); border-top: 1px solid var(--card-border); font-weight: 500; }
 
         @media (max-width: 480px) {
             .main-content { padding: 1rem; }
             .btn, .join-row input, .chat-input-area input { font-size: 1rem; padding: 0.8rem; }
         }
     </style>
-    
-    <!-- Socket.io -->
-    <script src="/socket.io/socket.io.js"></script>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%230a2b3e'/><text x='50' y='50' fill='white' font-family='sans-serif' font-weight='bold' font-size='50' text-anchor='middle' dominant-baseline='central'>JC</text></svg>">
 </head>
 <body class="dark">
 <div class="app-container">
     <div class="header">
-        <h1><i class="ph ph-broadcast"></i> JoshChat</h1>
-        
+        <h1><i class="ph ph-broadcast"></i> JoshChat <i class="ph ph-lock-key" title="End-to-End Encrypted" style="font-size: 1rem; opacity: 0.7;"></i></h1>
         <label class="theme-switch" for="themeToggle">
             <input type="checkbox" id="themeToggle" />
-            <div class="slider">
-                <i class="ph ph-sun"></i>
-                <i class="ph ph-moon"></i>
-                <div class="knob"></div>
-            </div>
+            <div class="slider"><i class="ph ph-sun"></i><i class="ph ph-moon"></i><div class="knob"></div></div>
         </label>
     </div>
 
     <div class="main-content">
-        <!-- Home View -->
         <div id="homeView">
             <div class="home-panel">
                 <button class="btn btn-primary" id="makeRoomBtn">
@@ -644,20 +465,17 @@
             </div>
         </div>
 
-        <!-- Chat View -->
         <div id="chatView" class="hidden">
             <div class="room-header">
                 <div class="room-id-box">
                     <span>ID: <strong id="roomIdDisplay">---</strong></span>
-                    <button class="copy-btn" id="copyRoomIdBtn"><i class="ph ph-copy"></i> Copy</button>
+                    <button class="copy-btn" id="copyRoomIdBtn"><i class="ph ph-copy"></i> Copy Link</button>
                 </div>
                 <div class="qr-container" id="qrContainer"></div>
                 
-                <!-- NEW: Member count & Nick section combined -->
                 <div class="room-actions-row">
                     <div class="member-count-box" title="Users in room">
-                        <i class="ph ph-users"></i>
-                        <span id="memberCountDisplay">1</span>
+                        <i class="ph ph-users"></i><span id="memberCountDisplay">1</span>
                     </div>
                     <div class="nick-section">
                         <input type="text" id="nicknameInput" placeholder="Name" maxlength="20">
@@ -666,12 +484,14 @@
                 </div>
             </div>
             
-            <div class="messages-area" id="messagesContainer">
-                <!-- Messages will appear here -->
+            <div class="chat-content-wrapper">
+                <div class="messages-area" id="messagesContainer"></div>
+                <button id="scrollToBottomBtn" class="scroll-bottom-btn hidden" title="Scroll to latest"><i class="ph ph-caret-down"></i></button>
+                <div id="typingIndicator" class="typing-indicator hidden">Someone is typing...</div>
             </div>
             
             <div class="chat-input-area">
-                <input type="text" id="messageInput" placeholder="Message..." autocomplete="off">
+                <input type="text" id="messageInput" placeholder="Message (*bold*, _italic_, `code`)..." autocomplete="off">
                 <button id="sendMsgBtn">Send</button>
             </div>
             
@@ -682,49 +502,28 @@
 </div>
 
 <script>
-    // Theme dark/light logic
     const themeToggleInput = document.getElementById('themeToggle');
-
     function setTheme(theme) {
         if (theme === 'dark') {
-            document.body.classList.add('dark');
-            localStorage.setItem('linkdrop-theme', 'dark');
-            themeToggleInput.checked = true;
+            document.body.classList.add('dark'); localStorage.setItem('linkdrop-theme', 'dark'); themeToggleInput.checked = true;
         } else {
-            document.body.classList.remove('dark');
-            localStorage.setItem('linkdrop-theme', 'light');
-            themeToggleInput.checked = false;
+            document.body.classList.remove('dark'); localStorage.setItem('linkdrop-theme', 'light'); themeToggleInput.checked = false;
         }
     }
 
-    // Load saved theme on startup
     const savedTheme = localStorage.getItem('linkdrop-theme');
-    if (savedTheme === 'light') {
-        setTheme('light');
-    } else {
-        setTheme('dark');
-    }
+    setTheme(savedTheme === 'light' ? 'light' : 'dark');
+    themeToggleInput.addEventListener('change', (e) => setTheme(e.target.checked ? 'dark' : 'light'));
 
-    // Listen for the toggle switch changing
-    themeToggleInput.addEventListener('change', (e) => {
-        setTheme(e.target.checked ? 'dark' : 'light');
-    });
-
-    // --- Socket.io ---
     const SOCKET_URL = 'https://linkdrop-server-k92j.onrender.com';
-    const socket = io(SOCKET_URL, {
-        reconnection: true,             // Enable automatic reconnection
-        reconnectionAttempts: 20,       // Try 20 times (gives server ~60 seconds to wake up)
-        reconnectionDelay: 2000,        // Wait 2 seconds between attempts
-        reconnectionDelayMax: 5000,     // Wait max 5 seconds between attempts
-        timeout: 20000                  // 20 second connection timeout
-    });
+    const socket = io(SOCKET_URL, { reconnection: true, reconnectionAttempts: 20, reconnectionDelay: 2000, reconnectionDelayMax: 5000, timeout: 20000 });
 
     let currentRoomId = null;
     let myNick = '';
-    let messageHistory = [];            // Local room message storage
+    let messageHistory = [];
+    let e2eKey = '';
+    let unreadCount = 0;
 
-    // DOM elements
     const homeView = document.getElementById('homeView');
     const chatView = document.getElementById('chatView');
     const makeBtn = document.getElementById('makeRoomBtn');
@@ -745,152 +544,171 @@
     const updateNickBtn = document.getElementById('updateNickBtn');
     const qrContainer = document.getElementById('qrContainer');
     const memberCountDisplay = document.getElementById('memberCountDisplay');
+    const scrollBottomBtn = document.getElementById('scrollToBottomBtn');
+    const typingIndicator = document.getElementById('typingIndicator');
 
-    // Handle create room loading state
-    let createRoomTimeout = null;
-    function setCreateRoomLoading(isLoading) {
-        if (isLoading) {
-            makeBtn.disabled = true;
-            makeBtnText.style.display = 'none';
-            makeBtnSpinner.style.display = 'inline-block';
-            if (createRoomTimeout) clearTimeout(createRoomTimeout);
-            createRoomTimeout = setTimeout(() => {
-                if (makeBtn.disabled) {
-                    setCreateRoomLoading(false);
-                    addSystemMessage('Connection timeout.');
-                }
-            }, 10000);
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) { unreadCount = 0; document.title = 'JoshChat'; }
+    });
+
+    messagesDiv.addEventListener('scroll', () => {
+        const isScrolledToBottom = messagesDiv.scrollHeight - messagesDiv.clientHeight <= messagesDiv.scrollTop + 50;
+        isScrolledToBottom ? scrollBottomBtn.classList.remove('visible') : scrollBottomBtn.classList.add('visible');
+    });
+
+    scrollBottomBtn.addEventListener('click', () => messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: 'smooth' }));
+
+    let typingTimeout = null;
+    let activeTypers = new Set();
+
+    msgInput.addEventListener('input', () => {
+        if (!currentRoomId) return;
+        socket.emit('typing', { roomId: currentRoomId, isTyping: true });
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => socket.emit('typing', { roomId: currentRoomId, isTyping: false }), 1500);
+    });
+
+    socket.on('user_typing', ({ nick, isTyping }) => {
+        isTyping ? activeTypers.add(nick) : activeTypers.delete(nick);
+        updateTypingIndicator();
+    });
+
+    function updateTypingIndicator() {
+        if (activeTypers.size === 0) {
+            typingIndicator.classList.add('hidden');
+        } else if (activeTypers.size === 1) {
+            typingIndicator.innerText = `${Array.from(activeTypers)[0]} is typing...`; typingIndicator.classList.remove('hidden');
         } else {
-            makeBtn.disabled = false;
-            makeBtnText.style.display = 'inline';
-            makeBtnSpinner.style.display = 'none';
-            if (createRoomTimeout) {
-                clearTimeout(createRoomTimeout);
-                createRoomTimeout = null;
-            }
+            typingIndicator.innerText = `Several people are typing...`; typingIndicator.classList.remove('hidden');
         }
     }
 
-    // Handle join room loading state
+    let createRoomTimeout = null;
+    function setCreateRoomLoading(isLoading) {
+        if (isLoading) {
+            makeBtn.disabled = true; makeBtnText.style.display = 'none'; makeBtnSpinner.style.display = 'inline-block';
+            if (createRoomTimeout) clearTimeout(createRoomTimeout);
+            createRoomTimeout = setTimeout(() => {
+                if (makeBtn.disabled) { setCreateRoomLoading(false); addSystemMessage('Connection timeout.'); }
+            }, 10000);
+        } else {
+            makeBtn.disabled = false; makeBtnText.style.display = 'inline'; makeBtnSpinner.style.display = 'none';
+            if (createRoomTimeout) { clearTimeout(createRoomTimeout); createRoomTimeout = null; }
+        }
+    }
+
     let joinRoomTimeout = null;
     function setJoinRoomLoading(isLoading) {
         if (isLoading) {
-            joinBtn.disabled = true;
-            joinBtnText.style.display = 'none';
-            joinBtnSpinner.style.display = 'inline-block';
+            joinBtn.disabled = true; joinBtnText.style.display = 'none'; joinBtnSpinner.style.display = 'inline-block';
             if (joinRoomTimeout) clearTimeout(joinRoomTimeout);
             joinRoomTimeout = setTimeout(() => {
                 if (joinBtn.disabled) {
-                    setJoinRoomLoading(false);
-                    addSystemMessage('Connection timeout.');
-                    joinError.innerText = 'Server timeout. Please try again.';
-                    joinError.classList.remove('hidden');
+                    setJoinRoomLoading(false); addSystemMessage('Connection timeout.');
+                    joinError.innerText = 'Server timeout. Please try again.'; joinError.classList.remove('hidden');
                     setTimeout(() => joinError.classList.add('hidden'), 4000);
                 }
             }, 10000);
         } else {
-            joinBtn.disabled = false;
-            joinBtnText.style.display = 'inline';
-            joinBtnSpinner.style.display = 'none';
-            if (joinRoomTimeout) {
-                clearTimeout(joinRoomTimeout);
-                joinRoomTimeout = null;
-            }
+            joinBtn.disabled = false; joinBtnText.style.display = 'inline'; joinBtnSpinner.style.display = 'none';
+            if (joinRoomTimeout) { clearTimeout(joinRoomTimeout); joinRoomTimeout = null; }
         }
     }
 
     function escapeHtml(str) {
         return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
+            if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m;
         });
     }
 
     function linkify(text) {
         const urlRegex = /((https?:\/\/[^\s]+)|(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,20}(\/[^\s]*)?))/g;
-        
         return text.replace(urlRegex, function(match) {
             const url = match.match(/^https?:\/\//) ? match : 'https://' + match;
             return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="chat-link">${match}</a>`;
         });
     }
 
+    function parseMarkdown(text) {
+        let parsed = escapeHtml(text);
+        parsed = parsed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        parsed = parsed.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        parsed = parsed.replace(/\_(.*?)\_/g, '<em>$1</em>');
+        parsed = parsed.replace(/\`(.*?)\`/g, '<code>$1</code>');
+        return linkify(parsed);
+    }
+
     function addMessage(name, text, isOwn = false) {
+        const isScrolledToBottom = messagesDiv.scrollHeight - messagesDiv.clientHeight <= messagesDiv.scrollTop + 50;
         const div = document.createElement('div');
         div.className = 'message' + (isOwn ? ' own' : '');
-        
-        const safeText = escapeHtml(text);
-        const linkedText = linkify(safeText);
-        
-        div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${linkedText}</div>`;
+        const formattedText = parseMarkdown(text);
+        div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${formattedText}</div>`;
         messagesDiv.appendChild(div);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        
+        if (isScrolledToBottom || isOwn) {
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        } else {
+            scrollBottomBtn.classList.add('visible');
+        }
     }
 
     function addSystemMessage(text) {
-        const sys = document.createElement('div');
-        sys.className = 'system-message';
-        sys.innerText = text;
-        messagesDiv.appendChild(sys);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        const sys = document.createElement('div'); sys.className = 'system-message'; sys.innerText = text;
+        messagesDiv.appendChild(sys); messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
     function clearMessages() { messagesDiv.innerHTML = ''; }
 
+    function encryptMessage(text) {
+        if (!e2eKey) return text;
+        return CryptoJS.AES.encrypt(text, e2eKey).toString();
+    }
+
+    function decryptMessage(encryptedText) {
+        if (!e2eKey) return encryptedText;
+        try {
+            const bytes = CryptoJS.AES.decrypt(encryptedText, e2eKey);
+            const originalText = bytes.toString(CryptoJS.enc.Utf8);
+            return originalText || "🔒 [Encrypted Message - Unknown Key]";
+        } catch(e) { return "🔒 [Encrypted Message - Unknown Key]"; }
+    }
+
     function showHome() {
-        homeView.classList.remove('hidden');
-        chatView.classList.add('hidden');
+        homeView.classList.remove('hidden'); chatView.classList.add('hidden');
         if (currentRoomId) socket.emit('leave_room', { roomId: currentRoomId });
-        currentRoomId = null;
-        messageHistory = []; // Clear the local client message history
-        clearMessages();
-        joinError.classList.add('hidden');
-        qrContainer.innerHTML = '';
-        setCreateRoomLoading(false);
-        setJoinRoomLoading(false);
+        currentRoomId = null; messageHistory = []; e2eKey = '';
+        activeTypers.clear(); updateTypingIndicator(); clearMessages();
+        joinError.classList.add('hidden'); qrContainer.innerHTML = '';
+        setCreateRoomLoading(false); setJoinRoomLoading(false);
+        window.history.replaceState({}, document.title, window.location.pathname);
     }
 
     function showChat(roomId) {
-        homeView.classList.add('hidden');
-        chatView.classList.remove('hidden');
-        currentRoomId = roomId;
-        roomIdSpan.innerText = roomId;
-        memberCountDisplay.innerText = "...";
+        homeView.classList.add('hidden'); chatView.classList.remove('hidden');
+        currentRoomId = roomId; roomIdSpan.innerText = roomId; memberCountDisplay.innerText = "...";
         clearMessages();
-        addSystemMessage(`Joined room.`);
-        msgInput.focus();
         
-        // P2P History Sync Call
+        if (window.location.hash) {
+            e2eKey = window.location.hash.substring(1);
+        } else {
+            e2eKey = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            window.location.hash = e2eKey;
+        }
+        
+        addSystemMessage(`Joined room. Chat is E2E Encrypted.`); msgInput.focus();
         socket.emit('request_history', { roomId });
 
-        const directLink = `${window.location.origin}?room=${roomId}`;
-        qrContainer.innerHTML = '';
-        qrContainer.style.cursor = 'pointer';
-        qrContainer.title = "Click to copy room link";
+        const directLink = `${window.location.origin}?room=${roomId}#${e2eKey}`;
+        qrContainer.innerHTML = ''; qrContainer.style.cursor = 'pointer'; qrContainer.title = "Click to copy encrypted room link";
         
         qrContainer.onclick = () => {
             navigator.clipboard.writeText(directLink).then(() => {
-                const originalTitle = qrContainer.title;
-                qrContainer.title = "Copied!";
-                qrContainer.style.borderColor = "#1c6d8f";
-                setTimeout(() => {
-                    qrContainer.title = originalTitle;
-                    qrContainer.style.borderColor = "transparent";
-                }, 1500);
+                const originalTitle = qrContainer.title; qrContainer.title = "Copied!"; qrContainer.style.borderColor = "#1c6d8f";
+                setTimeout(() => { qrContainer.title = originalTitle; qrContainer.style.borderColor = "transparent"; }, 1500);
             });
         };
-
-        try {
-            new QRCode(qrContainer, {
-                text: directLink,
-                width: 100,
-                height: 100,
-                colorDark: "#1a2332",
-                colorLight: "#ffffff"
-            });
-        } catch(e) { console.warn("QR error", e); }
+        try { new QRCode(qrContainer, { text: directLink, width: 100, height: 100, colorDark: "#1a2332", colorLight: "#ffffff" }); } catch(e) { console.warn("QR error", e); }
     }
 
     function generateRandomNick() {
@@ -900,7 +718,6 @@
 
     function updateNickname(nick) {
         if (!nick || !nick.trim()) nick = generateRandomNick();
-        // Send the request to the server, but don't set myNick yet!
         const requestedNick = nick.trim().substring(0, 20);
         socket.emit('set_nickname', { nick: requestedNick });
     }
@@ -908,146 +725,82 @@
     function sendMessage() {
         const text = msgInput.value.trim();
         if (!text || !currentRoomId) return;
-        socket.emit('chat_message', { roomId: currentRoomId, message: text });
-        msgInput.value = '';
-        msgInput.focus();
+        const encryptedPayload = encryptMessage(text);
+        socket.emit('chat_message', { roomId: currentRoomId, message: encryptedPayload });
+        msgInput.value = ''; msgInput.focus();
+        socket.emit('typing', { roomId: currentRoomId, isTyping: false }); clearTimeout(typingTimeout);
     }
 
-    // Connection Restoration Setup
     socket.on('connect', () => {
-        const sysMessages = document.querySelectorAll('.system-message.reconnecting');
-        sysMessages.forEach(msg => msg.remove());
-        
-        // Request nickname upon connection
-        updateNickname(myNick || generateRandomNick());
-        console.log('Connected to server');
+        document.querySelectorAll('.system-message.reconnecting').forEach(msg => msg.remove());
+        updateNickname(myNick || generateRandomNick()); console.log('Connected to server');
     });
 
     socket.on('disconnect', () => {
         if (currentRoomId && !document.querySelector('.system-message.reconnecting')) {
             addSystemMessage('Disconnected from server. Attempting to reconnect...');
-            const lastMsg = messagesDiv.lastElementChild;
-            if (lastMsg) lastMsg.classList.add('reconnecting');
+            const lastMsg = messagesDiv.lastElementChild; if (lastMsg) lastMsg.classList.add('reconnecting');
         }
     });
 
     socket.on('connect_error', () => {
         if (currentRoomId && !document.querySelector('.system-message.reconnecting')) {
             addSystemMessage('Connection lost. Reconnecting...');
-            const lastMsg = messagesDiv.lastElementChild;
-            if (lastMsg) lastMsg.classList.add('reconnecting');
+            const lastMsg = messagesDiv.lastElementChild; if (lastMsg) lastMsg.classList.add('reconnecting');
         }
     });
 
-    // Handle Nickname Changes
     socket.on('nickname_changed', (data) => {
-        const oldNick = myNick;
-        myNick = data.newNick;
-        nickInput.value = myNick;
-        
-        // Notify the user if they actively changed it
-        if (oldNick && oldNick !== myNick) {
-            addSystemMessage(`Name updated to ${myNick}.`);
-        }
+        const oldNick = myNick; myNick = data.newNick; nickInput.value = myNick;
+        if (oldNick && oldNick !== myNick) addSystemMessage(`Name updated to ${myNick}.`);
     });
 
-    // Handle Nickname Errors (Name already taken)
-    socket.on('nickname_error', (data) => {
-        addSystemMessage('⚠️ ' + data.error);
-        // Revert the input box to the current valid nickname
-        nickInput.value = myNick;
-    });
+    socket.on('nickname_error', (data) => { addSystemMessage('⚠️ ' + data.error); nickInput.value = myNick; });
 
-    socket.on('room_error', (data) => {
-        addSystemMessage('⚠️ ' + data.error + ' Returning home...');
-        setTimeout(() => {
-            showHome();
-        }, 3000);
-    });
+    socket.on('room_error', (data) => { addSystemMessage('⚠️ ' + data.error + ' Returning home...'); setTimeout(() => showHome(), 3000); });
     
     socket.on('new_message', (data) => {
         if (data.roomId === currentRoomId) {
-            // Commit to local client history
+            if (document.hidden) { unreadCount++; document.title = `(${unreadCount}) JoshChat`; }
             messageHistory.push({ nick: data.nick, message: data.message });
-            addMessage(data.nick, data.message, data.nick === myNick);
+            addMessage(data.nick, decryptMessage(data.message), data.nick === myNick);
         }
     });
 
-    // P2P History Sync Handlers
-    socket.on('request_history', (data) => {
-        // Master peer packages their message history and returns it
-        socket.emit('send_history', {
-            requesterId: data.requesterId,
-            history: messageHistory
-        });
-    });
+    socket.on('request_history', (data) => { socket.emit('send_history', { requesterId: data.requesterId, history: messageHistory }); });
 
     socket.on('history_response', (data) => {
         const historicalMessages = data.history || [];
-        
-        // Sync local client history array seamlessly
         messageHistory = [...historicalMessages, ...messageHistory];
-        
-        // Render history by safely prepending to prevent duplicate rendering of live streams
         const fragment = document.createDocumentFragment();
         historicalMessages.forEach(msg => {
-            const div = document.createElement('div');
-            div.className = 'message' + (msg.nick === myNick ? ' own' : '');
-            
-            const safeText = escapeHtml(msg.message);
-            const linkedText = linkify(safeText);
-            
-            div.innerHTML = `<span class="msg-name">${escapeHtml(msg.nick === myNick ? 'You' : msg.nick)}</span><div>${linkedText}</div>`;
+            const div = document.createElement('div'); div.className = 'message' + (msg.nick === myNick ? ' own' : '');
+            const decryptedText = decryptMessage(msg.message); const formattedText = parseMarkdown(decryptedText);
+            div.innerHTML = `<span class="msg-name">${escapeHtml(msg.nick === myNick ? 'You' : msg.nick)}</span><div>${formattedText}</div>`;
             fragment.appendChild(div);
         });
-        
-        messagesDiv.insertBefore(fragment, messagesDiv.firstChild);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        messagesDiv.insertBefore(fragment, messagesDiv.firstChild); messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
     
-    socket.on('room_notification', (notif) => {
-        if (notif.roomId === currentRoomId) {
-            addSystemMessage(notif.text);
-        }
-    });
-
-    socket.on('member_count', (data) => {
-        if (memberCountDisplay) {
-            memberCountDisplay.innerText = data.count;
-        }
-    });
-    
-    socket.on('room_created', (data) => {
-        setCreateRoomLoading(false);
-        showChat(data.roomId);
-    });
-    
+    socket.on('room_notification', (notif) => { if (notif.roomId === currentRoomId) addSystemMessage(notif.text); });
+    socket.on('member_count', (data) => { if (memberCountDisplay) memberCountDisplay.innerText = data.count; });
+    socket.on('room_created', (data) => { setCreateRoomLoading(false); showChat(data.roomId); });
     socket.on('join_result', (data) => {
         setJoinRoomLoading(false);
-        if (data.success) {
-            showChat(data.roomId);
-        } else {
-            joinError.innerText = data.error || 'Room does not exist';
-            joinError.classList.remove('hidden');
+        if (data.success) { showChat(data.roomId); } else {
+            joinError.innerText = data.error || 'Room does not exist'; joinError.classList.remove('hidden');
             setTimeout(() => joinError.classList.add('hidden'), 3000);
         }
     });
 
-    makeBtn.addEventListener('click', () => {
-        setCreateRoomLoading(true);
-        socket.emit('create_room');
-    });
-    
+    makeBtn.addEventListener('click', () => { setCreateRoomLoading(true); socket.emit('create_room'); });
     joinBtn.addEventListener('click', () => {
         const rid = joinInput.value.trim().toUpperCase();
         if (!rid) {
-            joinError.innerText = 'Enter an ID';
-            joinError.classList.remove('hidden');
-            setTimeout(() => joinError.classList.add('hidden'), 2000);
-            return;
+            joinError.innerText = 'Enter an ID'; joinError.classList.remove('hidden');
+            setTimeout(() => joinError.classList.add('hidden'), 2000); return;
         }
-        setJoinRoomLoading(true);
-        socket.emit('join_room', { roomId: rid });
+        setJoinRoomLoading(true); socket.emit('join_room', { roomId: rid });
     });
     
     sendBtn.addEventListener('click', sendMessage);
@@ -1056,12 +809,10 @@
     
     copyRoomBtn.addEventListener('click', () => {
         if (currentRoomId) {
-            navigator.clipboard.writeText(currentRoomId);
-            const originalText = copyRoomBtn.innerHTML;
-            copyRoomBtn.innerHTML = '<i class="ph ph-check"></i> Copied';
-            setTimeout(() => {
-                copyRoomBtn.innerHTML = originalText;
-            }, 2000);
+            const directLink = `${window.location.origin}?room=${currentRoomId}#${e2eKey}`;
+            navigator.clipboard.writeText(directLink);
+            const originalText = copyRoomBtn.innerHTML; copyRoomBtn.innerHTML = '<i class="ph ph-check"></i> Copied Link';
+            setTimeout(() => { copyRoomBtn.innerHTML = originalText; }, 2000);
         }
     });
     
@@ -1071,9 +822,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const roomFromUrl = urlParams.get('room');
     if (roomFromUrl) {
-        joinInput.value = roomFromUrl.toUpperCase();
-        setTimeout(() => joinBtn.click(), 500);
-        window.history.replaceState({}, document.title, window.location.pathname);
+        joinInput.value = roomFromUrl.toUpperCase(); setTimeout(() => joinBtn.click(), 500);
     }
 </script>
 </body>
