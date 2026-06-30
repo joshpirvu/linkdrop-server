@@ -13,8 +13,7 @@ const rooms = new Map();          // roomId -> Set(socketIds)
 const userNicks = new Map();      // socketId -> nick
 const roomTimeouts = new Map();   // roomId -> timeoutId (for delayed deletion)
 
-// Set room survival to 24 hours
-const ROOM_TIMEOUT_MS = 24 * 60 * 60 * 1000; 
+const ROOM_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 function generateRoomId() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -23,10 +22,10 @@ function generateRoomId() {
 io.on('connection', (socket) => {
     console.log(`Connected: ${socket.id}`);
 
+    // Set Nickname with Stealing Prevention
     socket.on('set_nickname', ({ nick }) => {
         let requestedNick = nick?.trim() || `Guest${Math.floor(Math.random()*1000)}`;
         
-        // Check if name is already taken by another connected user
         let isTaken = false;
         for (const [id, existingNick] of userNicks.entries()) {
             if (existingNick.toLowerCase() === requestedNick.toLowerCase() && id !== socket.id) {
@@ -36,13 +35,11 @@ io.on('connection', (socket) => {
         }
 
         if (isTaken) {
-            // If the user hasn't set a name yet (first connection), auto-append a number
             if (!userNicks.has(socket.id)) {
                 requestedNick = `${requestedNick}${Math.floor(Math.random()*100)}`;
                 userNicks.set(socket.id, requestedNick);
                 socket.emit('nickname_changed', { newNick: requestedNick });
             } else {
-                // Otherwise, reject the manual change
                 socket.emit('nickname_error', { error: 'That name is already taken!' });
             }
         } else {
@@ -63,15 +60,14 @@ io.on('connection', (socket) => {
     socket.on('join_room', ({ roomId }) => {
         if (!roomId) return socket.emit('join_result', { success: false, error: 'Invalid ID' });
         roomId = roomId.toUpperCase();
+        
         if (!rooms.has(roomId)) {
             return socket.emit('join_result', { success: false, error: 'The room does not exist or has expired' });
         }
         
-        // If there is a timeout for this room, cancel it (room becomes active again)
         if (roomTimeouts.has(roomId)) {
             clearTimeout(roomTimeouts.get(roomId));
             roomTimeouts.delete(roomId);
-            console.log(`Timeout cancelled for room ${roomId}`);
         }
         
         socket.join(roomId);
@@ -81,58 +77,44 @@ io.on('connection', (socket) => {
         const nick = userNicks.get(socket.id) || 'Anonymous';
         socket.to(roomId).emit('room_notification', { roomId, text: `${nick} joined the room` });
         socket.emit('room_notification', { roomId, text: `Joined room ${roomId}` });
-        
-        // Broadcast updated member count to everyone in the room
         io.to(roomId).emit('member_count', { count: rooms.get(roomId).size });
-        console.log(`${socket.id} joined ${roomId}. Members: ${rooms.get(roomId).size}`);
     });
 
     socket.on('chat_message', ({ roomId, message }) => {
         if (!roomId || !rooms.has(roomId)) {
-            // Tell the frontend that the room expired so it can recover gracefully
             return socket.emit('room_error', { error: 'Room does not exist or has expired.' });
         }
         const nick = userNicks.get(socket.id) || 'Anonymous';
         io.to(roomId).emit('new_message', {
             roomId,
             nick,
-            message: message.substring(0, 2000), // Increased from 500 to allow for E2EE cipher strings
+            message: message.substring(0, 2000), // Increased length for E2EE keys
             timestamp: Date.now()
         });
     });
 
-    // NEW: Handle Typing Indicators
+    // Handle Typing Indicators
     socket.on('typing', ({ roomId, isTyping }) => {
         if (!roomId || !rooms.has(roomId)) return;
         const nick = userNicks.get(socket.id) || 'Someone';
         socket.to(roomId).emit('user_typing', { nick, isTyping });
     });
 
-    // P2P History Sync Signalling:
-    // 1. Requester triggers request_history
+    // P2P History Sync Signalling
     socket.on('request_history', ({ roomId }) => {
         if (!roomId || !rooms.has(roomId)) return;
         const members = rooms.get(roomId);
         
-        // If there are other members in the room, find the oldest active client (first insertion in Set)
         if (members && members.size > 1) {
             let masterId = null;
             for (const memberId of members) {
-                if (memberId !== socket.id) {
-                    masterId = memberId;
-                    break;
-                }
+                if (memberId !== socket.id) { masterId = memberId; break; }
             }
-            if (masterId) {
-                console.log(`Relaying history request from ${socket.id} to master client ${masterId}`);
-                io.to(masterId).emit('request_history', { requesterId: socket.id });
-            }
+            if (masterId) io.to(masterId).emit('request_history', { requesterId: socket.id });
         }
     });
 
-    // 2. Master client returns history, server relays it to the requester
     socket.on('send_history', ({ requesterId, history }) => {
-        console.log(`Relaying chat history to requester ${requesterId}`);
         io.to(requesterId).emit('history_response', { history });
     });
 
@@ -142,21 +124,16 @@ io.on('connection', (socket) => {
             rooms.get(roomId).delete(socket.id);
             const nick = userNicks.get(socket.id) || 'Someone';
             socket.to(roomId).emit('room_notification', { roomId, text: `${nick} left the room` });
-            
-            // Broadcast updated member count to remaining members
             io.to(roomId).emit('member_count', { count: rooms.get(roomId).size });
             
             if (rooms.get(roomId).size === 0) {
-                // If no one is left, schedule room deletion after 24 hours
                 const timeoutId = setTimeout(() => {
                     if (rooms.has(roomId) && rooms.get(roomId).size === 0) {
                         rooms.delete(roomId);
                         roomTimeouts.delete(roomId);
-                        console.log(`Room deleted after timeout (24 hours): ${roomId}`);
                     }
                 }, ROOM_TIMEOUT_MS);
                 roomTimeouts.set(roomId, timeoutId);
-                console.log(`Room ${roomId} will be deleted in 24 hours if no one returns.`);
             }
         }
     });
@@ -168,8 +145,6 @@ io.on('connection', (socket) => {
                 members.delete(socket.id);
                 const nick = userNicks.get(socket.id) || 'Someone';
                 socket.to(roomId).emit('room_notification', { roomId, text: `${nick} left (disconnected)` });
-                
-                // Broadcast updated member count to remaining members
                 io.to(roomId).emit('member_count', { count: members.size });
                 
                 if (members.size === 0 && !roomTimeouts.has(roomId)) {
@@ -177,7 +152,6 @@ io.on('connection', (socket) => {
                         if (rooms.has(roomId) && rooms.get(roomId).size === 0) {
                             rooms.delete(roomId);
                             roomTimeouts.delete(roomId);
-                            console.log(`Room deleted after total disconnection: ${roomId}`);
                         }
                     }, ROOM_TIMEOUT_MS);
                     roomTimeouts.set(roomId, timeoutId);
@@ -193,6 +167,4 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Server started on port ${PORT}`);
-});
+server.listen(PORT, () => console.log(`Server started on port ${PORT}`));
