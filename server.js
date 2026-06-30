@@ -24,9 +24,31 @@ io.on('connection', (socket) => {
     console.log(`Connected: ${socket.id}`);
 
     socket.on('set_nickname', ({ nick }) => {
-        const newNick = nick?.trim() || `Guest${Math.floor(Math.random()*1000)}`;
-        userNicks.set(socket.id, newNick);
-        socket.emit('nickname_changed', { newNick });
+        let requestedNick = nick?.trim() || `Guest${Math.floor(Math.random()*1000)}`;
+        
+        // Check if name is already taken by another connected user
+        let isTaken = false;
+        for (const [id, existingNick] of userNicks.entries()) {
+            if (existingNick.toLowerCase() === requestedNick.toLowerCase() && id !== socket.id) {
+                isTaken = true;
+                break;
+            }
+        }
+
+        if (isTaken) {
+            // If the user hasn't set a name yet (first connection), auto-append a number
+            if (!userNicks.has(socket.id)) {
+                requestedNick = `${requestedNick}${Math.floor(Math.random()*100)}`;
+                userNicks.set(socket.id, requestedNick);
+                socket.emit('nickname_changed', { newNick: requestedNick });
+            } else {
+                // Otherwise, reject the manual change
+                socket.emit('nickname_error', { error: 'That name is already taken!' });
+            }
+        } else {
+            userNicks.set(socket.id, requestedNick);
+            socket.emit('nickname_changed', { newNick: requestedNick });
+        }
     });
 
     socket.on('create_room', () => {
