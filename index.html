@@ -4,28 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>JoshChat</title>
-    
+
     <!-- QR Code library -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    
+
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
+
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
-    <script src="script.js" defer></script>
-    <!-- Socket.io -->
+
+    <!-- Socket.io (must load before your script) -->
     <script src="/socket.io/socket.io.js"></script>
+
+    <!-- Your main script – load after DOM is ready -->
+    <script src="script.js" defer></script>
+
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%230a2b3e'/><text x='50' y='50' fill='white' font-family='sans-serif' font-weight='bold' font-size='50' text-anchor='middle' dominant-baseline='central'>JC</text></svg>">
 </head>
 <body class="dark">
 <div class="app-container">
     <div class="header">
         <h1><i class="ph ph-broadcast"></i> JoshChat</h1>
-        
+
         <label class="theme-switch" for="themeToggle">
             <input type="checkbox" id="themeToggle" />
             <div class="slider">
@@ -66,8 +72,8 @@
                     <button class="copy-btn" id="copyRoomIdBtn"><i class="ph ph-copy"></i> Copy</button>
                 </div>
                 <div class="qr-container" id="qrContainer"></div>
-                
-                <!-- NEW: Member count & Nick section combined -->
+
+                <!-- Member count & Nick section -->
                 <div class="room-actions-row">
                     <div class="member-count-box" title="Users in room">
                         <i class="ph ph-users"></i>
@@ -79,21 +85,20 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="messages-area" id="messagesContainer">
                 <!-- Messages will appear here -->
             </div>
-            
+
             <div class="chat-input-area">
                 <input type="text" id="messageInput" placeholder="Message..." autocomplete="off">
                 <button id="sendMsgBtn">Send</button>
             </div>
-            
+
             <button class="leave-btn" id="leaveRoomBtn"><i class="ph ph-sign-out"></i> Leave Room</button>
         </div>
     </div>
     <footer>Made by Josh Pirvu</footer>
 </div>
-<script src="script.js"></script>
 </body>
 </html>
