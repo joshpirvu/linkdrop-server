@@ -96,9 +96,16 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('new_message', {
             roomId,
             nick,
-            message: message.substring(0, 500),
+            message: message.substring(0, 2000), // Increased from 500 to allow for E2EE cipher strings
             timestamp: Date.now()
         });
+    });
+
+    // NEW: Handle Typing Indicators
+    socket.on('typing', ({ roomId, isTyping }) => {
+        if (!roomId || !rooms.has(roomId)) return;
+        const nick = userNicks.get(socket.id) || 'Someone';
+        socket.to(roomId).emit('user_typing', { nick, isTyping });
     });
 
     // P2P History Sync Signalling:
