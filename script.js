@@ -1,4 +1,3 @@
-document.addEventListener('DOMContentLoaded', function() {
     // Theme dark/light logic
     const themeToggleInput = document.getElementById('themeToggle');
 
@@ -30,16 +29,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Socket.io ---
     const SOCKET_URL = 'https://linkdrop-server-k92j.onrender.com';
     const socket = io(SOCKET_URL, {
-        reconnection: true,
-        reconnectionAttempts: 20,
-        reconnectionDelay: 2000,
-        reconnectionDelayMax: 5000,
-        timeout: 20000
+        reconnection: true,             // Enable automatic reconnection
+        reconnectionAttempts: 20,       // Try 20 times (gives server ~60 seconds to wake up)
+        reconnectionDelay: 2000,        // Wait 2 seconds between attempts
+        reconnectionDelayMax: 5000,     // Wait max 5 seconds between attempts
+        timeout: 20000                  // 20 second connection timeout
     });
 
     let currentRoomId = null;
     let myNick = '';
-    let messageHistory = [];
+    let messageHistory = [];            // Local room message storage
 
     // DOM elements
     const homeView = document.getElementById('homeView');
@@ -127,6 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function linkify(text) {
         const urlRegex = /((https?:\/\/[^\s]+)|(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,20}(\/[^\s]*)?))/g;
+        
         return text.replace(urlRegex, function(match) {
             const url = match.match(/^https?:\/\//) ? match : 'https://' + match;
             return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="chat-link">${match}</a>`;
@@ -136,8 +136,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function addMessage(name, text, isOwn = false) {
         const div = document.createElement('div');
         div.className = 'message' + (isOwn ? ' own' : '');
+        
         const safeText = escapeHtml(text);
         const linkedText = linkify(safeText);
+        
         div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${linkedText}</div>`;
         messagesDiv.appendChild(div);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
@@ -158,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
         chatView.classList.add('hidden');
         if (currentRoomId) socket.emit('leave_room', { roomId: currentRoomId });
         currentRoomId = null;
-        messageHistory = [];
+        messageHistory = []; // Clear the local client message history
         clearMessages();
         joinError.classList.add('hidden');
         qrContainer.innerHTML = '';
@@ -175,14 +177,15 @@ document.addEventListener('DOMContentLoaded', function() {
         clearMessages();
         addSystemMessage(`Joined room.`);
         msgInput.focus();
-
+        
+        // P2P History Sync Call
         socket.emit('request_history', { roomId });
 
         const directLink = `${window.location.origin}?room=${roomId}`;
         qrContainer.innerHTML = '';
         qrContainer.style.cursor = 'pointer';
         qrContainer.title = "Click to copy room link";
-
+        
         qrContainer.onclick = () => {
             navigator.clipboard.writeText(directLink).then(() => {
                 const originalTitle = qrContainer.title;
@@ -213,6 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateNickname(nick) {
         if (!nick || !nick.trim()) nick = generateRandomNick();
+        // Send the request to the server, but don't set myNick yet!
         const requestedNick = nick.trim().substring(0, 20);
         socket.emit('set_nickname', { nick: requestedNick });
     }
@@ -225,10 +229,12 @@ document.addEventListener('DOMContentLoaded', function() {
         msgInput.focus();
     }
 
-    // Socket event listeners
+    // Connection Restoration Setup
     socket.on('connect', () => {
         const sysMessages = document.querySelectorAll('.system-message.reconnecting');
         sysMessages.forEach(msg => msg.remove());
+        
+        // Request nickname upon connection
         updateNickname(myNick || generateRandomNick());
         console.log('Connected to server');
     });
@@ -249,17 +255,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Handle Nickname Changes
     socket.on('nickname_changed', (data) => {
         const oldNick = myNick;
         myNick = data.newNick;
         nickInput.value = myNick;
+        
+        // Notify the user if they actively changed it
         if (oldNick && oldNick !== myNick) {
             addSystemMessage(`Name updated to ${myNick}.`);
         }
     });
 
+    // Handle Nickname Errors (Name already taken)
     socket.on('nickname_error', (data) => {
         addSystemMessage('⚠️ ' + data.error);
+        // Revert the input box to the current valid nickname
         nickInput.value = myNick;
     });
 
@@ -269,15 +280,18 @@ document.addEventListener('DOMContentLoaded', function() {
             showHome();
         }, 3000);
     });
-
+    
     socket.on('new_message', (data) => {
         if (data.roomId === currentRoomId) {
+            // Commit to local client history
             messageHistory.push({ nick: data.nick, message: data.message });
             addMessage(data.nick, data.message, data.nick === myNick);
         }
     });
 
+    // P2P History Sync Handlers
     socket.on('request_history', (data) => {
+        // Master peer packages their message history and returns it
         socket.emit('send_history', {
             requesterId: data.requesterId,
             history: messageHistory
@@ -286,20 +300,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     socket.on('history_response', (data) => {
         const historicalMessages = data.history || [];
+        
+        // Sync local client history array seamlessly
         messageHistory = [...historicalMessages, ...messageHistory];
+        
+        // Render history by safely prepending to prevent duplicate rendering of live streams
         const fragment = document.createDocumentFragment();
         historicalMessages.forEach(msg => {
             const div = document.createElement('div');
             div.className = 'message' + (msg.nick === myNick ? ' own' : '');
+            
             const safeText = escapeHtml(msg.message);
             const linkedText = linkify(safeText);
+            
             div.innerHTML = `<span class="msg-name">${escapeHtml(msg.nick === myNick ? 'You' : msg.nick)}</span><div>${linkedText}</div>`;
             fragment.appendChild(div);
         });
+        
         messagesDiv.insertBefore(fragment, messagesDiv.firstChild);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
-
+    
     socket.on('room_notification', (notif) => {
         if (notif.roomId === currentRoomId) {
             addSystemMessage(notif.text);
@@ -311,12 +332,12 @@ document.addEventListener('DOMContentLoaded', function() {
             memberCountDisplay.innerText = data.count;
         }
     });
-
+    
     socket.on('room_created', (data) => {
         setCreateRoomLoading(false);
         showChat(data.roomId);
     });
-
+    
     socket.on('join_result', (data) => {
         setJoinRoomLoading(false);
         if (data.success) {
@@ -328,12 +349,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // UI Event Listeners
     makeBtn.addEventListener('click', () => {
         setCreateRoomLoading(true);
         socket.emit('create_room');
     });
-
+    
     joinBtn.addEventListener('click', () => {
         const rid = joinInput.value.trim().toUpperCase();
         if (!rid) {
@@ -345,11 +365,11 @@ document.addEventListener('DOMContentLoaded', function() {
         setJoinRoomLoading(true);
         socket.emit('join_room', { roomId: rid });
     });
-
+    
     sendBtn.addEventListener('click', sendMessage);
     msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     leaveBtn.addEventListener('click', showHome);
-
+    
     copyRoomBtn.addEventListener('click', () => {
         if (currentRoomId) {
             navigator.clipboard.writeText(currentRoomId);
@@ -360,11 +380,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 2000);
         }
     });
-
+    
     updateNickBtn.addEventListener('click', () => updateNickname(nickInput.value));
     nickInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') updateNickname(nickInput.value); });
 
-    // Auto-join from URL
     const urlParams = new URLSearchParams(window.location.search);
     const roomFromUrl = urlParams.get('room');
     if (roomFromUrl) {
@@ -372,6 +391,3 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => joinBtn.click(), 500);
         window.history.replaceState({}, document.title, window.location.pathname);
     }
-
-    updateNickname(generateRandomNick());
-});
