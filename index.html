@@ -900,9 +900,9 @@
 
     function updateNickname(nick) {
         if (!nick || !nick.trim()) nick = generateRandomNick();
-        myNick = nick.trim().substring(0,20);
-        socket.emit('set_nickname', { nick: myNick });
-        nickInput.value = myNick;
+        // Send the request to the server, but don't set myNick yet!
+        const requestedNick = nick.trim().substring(0, 20);
+        socket.emit('set_nickname', { nick: requestedNick });
     }
 
     function sendMessage() {
@@ -918,6 +918,7 @@
         const sysMessages = document.querySelectorAll('.system-message.reconnecting');
         sysMessages.forEach(msg => msg.remove());
         
+        // Request nickname upon connection
         updateNickname(myNick || generateRandomNick());
         console.log('Connected to server');
     });
@@ -936,6 +937,25 @@
             const lastMsg = messagesDiv.lastElementChild;
             if (lastMsg) lastMsg.classList.add('reconnecting');
         }
+    });
+
+    // Handle Nickname Changes
+    socket.on('nickname_changed', (data) => {
+        const oldNick = myNick;
+        myNick = data.newNick;
+        nickInput.value = myNick;
+        
+        // Notify the user if they actively changed it
+        if (oldNick && oldNick !== myNick) {
+            addSystemMessage(`Name updated to ${myNick}.`);
+        }
+    });
+
+    // Handle Nickname Errors (Name already taken)
+    socket.on('nickname_error', (data) => {
+        addSystemMessage('⚠️ ' + data.error);
+        // Revert the input box to the current valid nickname
+        nickInput.value = myNick;
     });
 
     socket.on('room_error', (data) => {
@@ -1012,10 +1032,6 @@
             setTimeout(() => joinError.classList.add('hidden'), 3000);
         }
     });
-    
-    socket.on('nickname_changed', (data) => {
-        if (data.newNick === myNick) addSystemMessage(`Name updated.`);
-    });
 
     makeBtn.addEventListener('click', () => {
         setCreateRoomLoading(true);
@@ -1059,7 +1075,6 @@
         setTimeout(() => joinBtn.click(), 500);
         window.history.replaceState({}, document.title, window.location.pathname);
     }
-    updateNickname(generateRandomNick());
 </script>
 </body>
 </html>
