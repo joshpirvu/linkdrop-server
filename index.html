@@ -719,25 +719,7 @@
 
 <script>
     const scrollBottomBtn = document.getElementById('scrollToBottomBtn');
-    // Detect if the user has scrolled up away from the bottom
-messagesDiv.addEventListener('scroll', () => {
-    const threshold = 100; // px margin of error from the bottom
-    const isAtBottom = (messagesDiv.scrollHeight - messagesDiv.clientHeight - messagesDiv.scrollTop) < threshold;
     
-    if (isAtBottom) {
-        scrollBottomBtn.classList.remove('visible');
-    } else {
-        scrollBottomBtn.classList.add('visible');
-    }
-});
-
-// Smoothly scroll back to the bottom when clicking the button
-scrollBottomBtn.addEventListener('click', () => {
-    messagesDiv.scrollTo({
-        top: messagesDiv.scrollHeight,
-        behavior: 'smooth'
-    });
-});
     // Theme dark/light logic
     const themeToggleInput = document.getElementById('themeToggle');
 
@@ -864,6 +846,26 @@ scrollBottomBtn.addEventListener('click', () => {
         });
     }
 
+    // Detect if the user has scrolled up away from the bottom
+messagesDiv.addEventListener('scroll', () => {
+    const threshold = 100; // px margin of error from the bottom
+    const isAtBottom = (messagesDiv.scrollHeight - messagesDiv.clientHeight - messagesDiv.scrollTop) < threshold;
+    
+    if (isAtBottom) {
+        scrollBottomBtn.classList.remove('visible');
+    } else {
+        scrollBottomBtn.classList.add('visible');
+    }
+});
+
+// Smoothly scroll back to the bottom when clicking the button
+scrollBottomBtn.addEventListener('click', () => {
+    messagesDiv.scrollTo({
+        top: messagesDiv.scrollHeight,
+        behavior: 'smooth'
+    });
+});
+    
     function linkify(text) {
         const urlRegex = /((https?:\/\/[^\s]+)|(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,20}(\/[^\s]*)?))/g;
         
