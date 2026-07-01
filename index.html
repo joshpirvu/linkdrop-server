@@ -56,7 +56,41 @@
             --error-text: #d14545;
             --room-id-box-bg: #ffffffcc;
             --nick-section-bg: white;
+            
         }
+
+        #chatView {
+    position: relative; /* Crucial for absolute positioning of the floating button */
+}
+
+.scroll-bottom-btn {
+    position: absolute;
+    bottom: 80px; /* Positioned nicely above the chat input bar */
+    right: 1.5rem;
+    background: var(--btn-primary-bg);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+    transition: all 0.2s ease;
+    z-index: 100;
+}
+
+.scroll-bottom-btn.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
 
         /* Dark theme */
         body.dark {
@@ -669,7 +703,9 @@
             <div class="messages-area" id="messagesContainer">
                 <!-- Messages will appear here -->
             </div>
-            
+            <button id="scrollToBottomBtn" class="scroll-bottom-btn" title="Scroll to bottom">
+    <i class="ph ph-caret-down" style="font-size: 20px;"></i>
+            </button>
             <div class="chat-input-area">
                 <input type="text" id="messageInput" placeholder="Message..." autocomplete="off">
                 <button id="sendMsgBtn">Send</button>
@@ -682,6 +718,26 @@
 </div>
 
 <script>
+    const scrollBottomBtn = document.getElementById('scrollToBottomBtn');
+    // Detect if the user has scrolled up away from the bottom
+messagesDiv.addEventListener('scroll', () => {
+    const threshold = 100; // px margin of error from the bottom
+    const isAtBottom = (messagesDiv.scrollHeight - messagesDiv.clientHeight - messagesDiv.scrollTop) < threshold;
+    
+    if (isAtBottom) {
+        scrollBottomBtn.classList.remove('visible');
+    } else {
+        scrollBottomBtn.classList.add('visible');
+    }
+});
+
+// Smoothly scroll back to the bottom when clicking the button
+scrollBottomBtn.addEventListener('click', () => {
+    messagesDiv.scrollTo({
+        top: messagesDiv.scrollHeight,
+        behavior: 'smooth'
+    });
+});
     // Theme dark/light logic
     const themeToggleInput = document.getElementById('themeToggle');
 
@@ -818,16 +874,28 @@
     }
 
     function addMessage(name, text, isOwn = false) {
-        const div = document.createElement('div');
-        div.className = 'message' + (isOwn ? ' own' : '');
-        
-        const safeText = escapeHtml(text);
-        const linkedText = linkify(safeText);
-        
-        div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${linkedText}</div>`;
-        messagesDiv.appendChild(div);
+    const div = document.createElement('div');
+    div.className = 'message' + (isOwn ? ' own' : '');
+    
+    const safeText = escapeHtml(text);
+    const linkedText = linkify(safeText);
+    
+    div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${linkedText}</div>`;
+    
+    // Check scroll state before adding the new element
+    const threshold = 100;
+    const wasAtBottom = (messagesDiv.scrollHeight - messagesDiv.clientHeight - messagesDiv.scrollTop) < threshold;
+    
+    messagesDiv.appendChild(div);
+    
+    // Auto-scroll ONLY if they were already at the bottom or if they sent the message
+    if (wasAtBottom || isOwn) {
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    } else {
+        // Alert them that a new message arrived above their viewport
+        scrollBottomBtn.classList.add('visible');
     }
+}
 
     function addSystemMessage(text) {
         const sys = document.createElement('div');
