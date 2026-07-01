@@ -66,7 +66,8 @@
 .scroll-bottom-btn {
     position: absolute;
     bottom: 80px; /* Positioned nicely above the chat input bar */
-    right: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
     background: var(--btn-primary-bg);
     color: white;
     border: none;
@@ -79,15 +80,14 @@
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     opacity: 0;
-    transform: translateY(10px);
     pointer-events: none;
     transition: all 0.2s ease;
     z-index: 100;
 }
 
 .scroll-bottom-btn.visible {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: .67; /* Made fully opaque for maximum clarity, can be adjusted as needed */
+    transform: translateX(-50%) translateY(0);
     pointer-events: auto;
 }
 
