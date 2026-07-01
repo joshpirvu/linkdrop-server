@@ -704,7 +704,8 @@
                 <!-- Messages will appear here -->
             </div>
             <button id="scrollToBottomBtn" class="scroll-bottom-btn" title="Scroll to bottom">
-    <i class="ph ph-caret-down" style="font-size: 20px;"></i>
+                <span id="scrollBtnText"></span>
+                <i class="ph ph-caret-down" style="font-size: 20px;"></i>
             </button>
             <div class="chat-input-area">
                 <input type="text" id="messageInput" placeholder="Message..." autocomplete="off">
@@ -719,7 +720,7 @@
 
 <script>
     const scrollBottomBtn = document.getElementById('scrollToBottomBtn');
-    
+    let unreadChatCount = 0;
     // Theme dark/light logic
     const themeToggleInput = document.getElementById('themeToggle');
 
@@ -847,13 +848,19 @@
     }
 
     // Detect if the user has scrolled up away from the bottom
+// Detect if the user has scrolled up away from the bottom
 messagesDiv.addEventListener('scroll', () => {
-        if (isLastMessageVisible()) {
-            scrollBottomBtn.classList.remove('visible');
-        } else {
-            scrollBottomBtn.classList.add('visible');
-        }
-    });
+    const threshold = 15;
+    const isAtBottom = (messagesDiv.scrollHeight - messagesDiv.clientHeight - messagesDiv.scrollTop) < threshold;
+    
+    if (isAtBottom) {
+        scrollBottomBtn.classList.remove('visible');
+        unreadChatCount = 0;
+        updateScrollButtonUI();
+    } else {
+        scrollBottomBtn.classList.add('visible');
+    }
+});
 
 // Smoothly scroll back to the bottom when clicking the button
 scrollBottomBtn.addEventListener('click', () => {
@@ -861,6 +868,8 @@ scrollBottomBtn.addEventListener('click', () => {
         top: messagesDiv.scrollHeight,
         behavior: 'smooth'
     });
+    unreadChatCount = 0;
+    updateScrollButtonUI();
 });
     
     function linkify(text) {
@@ -871,6 +880,15 @@ scrollBottomBtn.addEventListener('click', () => {
             return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="chat-link">${match}</a>`;
         });
     }
+
+    function updateScrollButtonUI() {
+    const scrollBtnText = document.getElementById('scrollBtnText');
+    if (unreadChatCount > 0) {
+        scrollBtnText.innerText = `${unreadChatCount} new message${unreadChatCount > 1 ? 's' : ''}`;
+    } else {
+        scrollBtnText.innerText = "";
+    }
+}
 
     function isLastMessageVisible() {
         const lastMsg = messagesDiv.lastElementChild;
@@ -886,28 +904,34 @@ scrollBottomBtn.addEventListener('click', () => {
     }
 
     function addMessage(name, text, isOwn = false) {
-        const div = document.createElement('div');
-        div.className = 'message' + (isOwn ? ' own' : '');
-        
-        const safeText = escapeHtml(text);
-        const linkedText = linkify(safeText);
-        
-        div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${linkedText}</div>`;
-        
-        // 1. Check if they can see the current last message BEFORE we add the new one
-        const wasAtBottom = isLastMessageVisible();
-        
-        // 2. Append the new message
-        messagesDiv.appendChild(div);
-        
-        // 3. Auto-scroll only if they were looking at the last message, or if they sent it themselves
-        if (wasAtBottom || isOwn) {
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        } else {
-            // Show the floating scroll-to-bottom button
-            scrollBottomBtn.classList.add('visible');
-        }
+    const div = document.createElement('div');
+    div.className = 'message' + (isOwn ? ' own' : '');
+    
+    const safeText = escapeHtml(text);
+    const linkedText = linkify(safeText);
+    
+    div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${linkedText}</div>`;
+    
+    // Tighter threshold (15px) for scroll detection
+    const threshold = 15;
+    
+    // Check if the tab is focused and the user is looking at the bottom
+    const isTabFocused = !document.hidden && document.hasFocus();
+    const wasAtBottom = isTabFocused && (messagesDiv.scrollHeight - messagesDiv.clientHeight - messagesDiv.scrollTop) < threshold;
+    
+    messagesDiv.appendChild(div);
+    
+    if (wasAtBottom || isOwn) {
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        unreadChatCount = 0;
+        updateScrollButtonUI();
+    } else {
+        // Increment unread count for messages received while scrolled up or out-of-focus
+        unreadChatCount++;
+        updateScrollButtonUI();
+        scrollBottomBtn.classList.add('visible');
     }
+}
 
     function addSystemMessage(text) {
         const sys = document.createElement('div');
