@@ -7,8 +7,7 @@
     
     <!-- QR Code library -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <!-- CryptoJS for End-to-End Encryption -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
@@ -396,6 +395,7 @@
             transition: border 0.2s;
         }
 
+        /* NEW ACTIONS ROW - Holds Member count and Nick section together */
         .room-actions-row {
             display: flex;
             gap: 8px;
@@ -437,7 +437,7 @@
             font-size: 0.9rem;
             outline: none;
             color: var(--btn-outline-text);
-            min-width: 0;
+            min-width: 0; /* Prevents overflow issues on mobile */
         }
 
         .nick-section button {
@@ -451,10 +451,6 @@
             cursor: pointer;
             transition: 0.2s;
             flex-shrink: 0;
-        }
-
-        .chat-content-wrapper {
-            position: relative;
         }
 
         .messages-area {
@@ -499,18 +495,6 @@
             display: block;
         }
 
-        /* Markdown Styles */
-        .message strong { font-weight: 700; }
-        .message em { font-style: italic; }
-        .message code {
-            background: rgba(0,0,0,0.08);
-            padding: 2px 4px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 0.9em;
-        }
-        body.dark .message code { background: rgba(255,255,255,0.15); }
-
         .chat-link {
             color: inherit;
             text-decoration: underline;
@@ -519,56 +503,8 @@
             word-break: break-all;
         }
 
-        .chat-link:hover { opacity: 0.8; }
-
-        /* Floating Components: Typing Indicator & Scroll Down */
-        .typing-indicator {
-            position: absolute;
-            bottom: 80px; 
-            left: 1rem;
-            font-size: 0.75rem;
-            color: var(--footer-text);
-            background: var(--card-bg);
-            padding: 0.4rem 0.8rem;
-            border-radius: 12px;
-            border: 1px solid var(--card-border);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: opacity 0.2s, transform 0.2s;
-            z-index: 5;
-        }
-        
-        .typing-indicator.hidden { 
-            opacity: 0; 
-            transform: translateY(10px); 
-            pointer-events: none; 
-        }
-
-        .scroll-bottom-btn {
-            position: absolute;
-            bottom: 80px;
-            right: 1rem;
-            background: var(--btn-primary-bg);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            opacity: 0;
-            transform: translateY(10px);
-            pointer-events: none;
-            transition: 0.2s;
-            z-index: 10;
-        }
-        
-        .scroll-bottom-btn.visible { 
-            opacity: 1; 
-            transform: translateY(0); 
-            pointer-events: auto; 
+        .chat-link:hover {
+            opacity: 0.8;
         }
 
         .chat-input-area {
@@ -623,7 +559,9 @@
             gap: 8px;
         }
 
-        .leave-btn:hover { opacity: 0.9; }
+        .leave-btn:hover {
+            opacity: 0.9;
+        }
 
         .system-message {
             text-align: center;
@@ -664,14 +602,15 @@
             .btn, .join-row input, .chat-input-area input { font-size: 1rem; padding: 0.8rem; }
         }
     </style>
-
-     <script src="/socket.io/socket.io.js"></script>
+    
+    <!-- Socket.io -->
+    <script src="/socket.io/socket.io.js"></script>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%230a2b3e'/><text x='50' y='50' fill='white' font-family='sans-serif' font-weight='bold' font-size='50' text-anchor='middle' dominant-baseline='central'>JC</text></svg>">
 </head>
 <body class="dark">
 <div class="app-container">
     <div class="header">
-        <h1><i class="ph ph-broadcast"></i> JoshChat <i class="ph ph-lock-key" title="End-to-End Encrypted" style="font-size: 1rem; opacity: 0.7;"></i></h1>
+        <h1><i class="ph ph-broadcast"></i> JoshChat</h1>
         
         <label class="theme-switch" for="themeToggle">
             <input type="checkbox" id="themeToggle" />
@@ -710,10 +649,11 @@
             <div class="room-header">
                 <div class="room-id-box">
                     <span>ID: <strong id="roomIdDisplay">---</strong></span>
-                    <button class="copy-btn" id="copyRoomIdBtn"><i class="ph ph-copy"></i> Copy Link</button>
+                    <button class="copy-btn" id="copyRoomIdBtn"><i class="ph ph-copy"></i> Copy</button>
                 </div>
                 <div class="qr-container" id="qrContainer"></div>
                 
+                <!-- NEW: Member count & Nick section combined -->
                 <div class="room-actions-row">
                     <div class="member-count-box" title="Users in room">
                         <i class="ph ph-users"></i>
@@ -726,17 +666,12 @@
                 </div>
             </div>
             
-            <div class="chat-content-wrapper">
-                <div class="messages-area" id="messagesContainer">
-                    <!-- Messages will appear here -->
-                </div>
-                <!-- Advanced Chat UI Components -->
-                <button id="scrollToBottomBtn" class="scroll-bottom-btn hidden" title="Scroll to latest"><i class="ph ph-caret-down"></i></button>
-                <div id="typingIndicator" class="typing-indicator hidden">Someone is typing...</div>
+            <div class="messages-area" id="messagesContainer">
+                <!-- Messages will appear here -->
             </div>
             
             <div class="chat-input-area">
-                <input type="text" id="messageInput" placeholder="Message (*bold*, _italic_, `code`)..." autocomplete="off">
+                <input type="text" id="messageInput" placeholder="Message..." autocomplete="off">
                 <button id="sendMsgBtn">Send</button>
             </div>
             
@@ -762,6 +697,7 @@
         }
     }
 
+    // Load saved theme on startup
     const savedTheme = localStorage.getItem('linkdrop-theme');
     if (savedTheme === 'light') {
         setTheme('light');
@@ -769,6 +705,7 @@
         setTheme('dark');
     }
 
+    // Listen for the toggle switch changing
     themeToggleInput.addEventListener('change', (e) => {
         setTheme(e.target.checked ? 'dark' : 'light');
     });
@@ -776,18 +713,16 @@
     // --- Socket.io ---
     const SOCKET_URL = 'https://linkdrop-server-k92j.onrender.com';
     const socket = io(SOCKET_URL, {
-        reconnection: true,
-        reconnectionAttempts: 20,
-        reconnectionDelay: 2000,
-        reconnectionDelayMax: 5000,
-        timeout: 20000
+        reconnection: true,             // Enable automatic reconnection
+        reconnectionAttempts: 20,       // Try 20 times (gives server ~60 seconds to wake up)
+        reconnectionDelay: 2000,        // Wait 2 seconds between attempts
+        reconnectionDelayMax: 5000,     // Wait max 5 seconds between attempts
+        timeout: 20000                  // 20 second connection timeout
     });
 
     let currentRoomId = null;
     let myNick = '';
-    let messageHistory = [];
-    let e2eKey = ''; // Secret key for Encryption
-    let unreadCount = 0; // Tab Notifications
+    let messageHistory = [];            // Local room message storage
 
     // DOM elements
     const homeView = document.getElementById('homeView');
@@ -810,74 +745,8 @@
     const updateNickBtn = document.getElementById('updateNickBtn');
     const qrContainer = document.getElementById('qrContainer');
     const memberCountDisplay = document.getElementById('memberCountDisplay');
-    const scrollBottomBtn = document.getElementById('scrollToBottomBtn');
-    const typingIndicator = document.getElementById('typingIndicator');
 
-    // Handle Unread Tab & Window Focus Notifications
-    function clearUnreadNotifications() {
-        unreadCount = 0;
-        document.title = 'JoshChat';
-    }
-
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-            clearUnreadNotifications();
-        }
-    });
-
-    window.addEventListener('focus', clearUnreadNotifications);
-    window.addEventListener('click', clearUnreadNotifications);
-
-    // Handle Smart Auto-Scroll Detection
-    messagesDiv.addEventListener('scroll', () => {
-        const isScrolledToBottom = messagesDiv.scrollHeight - messagesDiv.clientHeight <= messagesDiv.scrollTop + 50;
-        if (isScrolledToBottom) {
-            scrollBottomBtn.classList.remove('visible');
-        } else {
-            scrollBottomBtn.classList.add('visible');
-        }
-    });
-
-    scrollBottomBtn.addEventListener('click', () => {
-        messagesDiv.scrollTo({ top: messagesDiv.scrollHeight, behavior: 'smooth' });
-    });
-
-    // Handle Typing Indicators
-    let typingTimeout = null;
-    let activeTypers = new Set();
-
-    msgInput.addEventListener('input', () => {
-        if (!currentRoomId) return;
-        socket.emit('typing', { roomId: currentRoomId, isTyping: true });
-        
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => {
-            socket.emit('typing', { roomId: currentRoomId, isTyping: false });
-        }, 1500);
-    });
-
-    socket.on('user_typing', ({ nick, isTyping }) => {
-        if (isTyping) {
-            activeTypers.add(nick);
-        } else {
-            activeTypers.delete(nick);
-        }
-        updateTypingIndicator();
-    });
-
-    function updateTypingIndicator() {
-        if (activeTypers.size === 0) {
-            typingIndicator.classList.add('hidden');
-        } else if (activeTypers.size === 1) {
-            typingIndicator.innerText = `${Array.from(activeTypers)[0]} is typing...`;
-            typingIndicator.classList.remove('hidden');
-        } else {
-            typingIndicator.innerText = `Several people are typing...`;
-            typingIndicator.classList.remove('hidden');
-        }
-    }
-
-    // Loader Handlers
+    // Handle create room loading state
     let createRoomTimeout = null;
     function setCreateRoomLoading(isLoading) {
         if (isLoading) {
@@ -902,6 +771,7 @@
         }
     }
 
+    // Handle join room loading state
     let joinRoomTimeout = null;
     function setJoinRoomLoading(isLoading) {
         if (isLoading) {
@@ -929,7 +799,6 @@
         }
     }
 
-    // Markdown Parser & Linkifier
     function escapeHtml(str) {
         return str.replace(/[&<>]/g, function(m) {
             if (m === '&') return '&amp;';
@@ -941,38 +810,23 @@
 
     function linkify(text) {
         const urlRegex = /((https?:\/\/[^\s]+)|(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,20}(\/[^\s]*)?))/g;
+        
         return text.replace(urlRegex, function(match) {
             const url = match.match(/^https?:\/\//) ? match : 'https://' + match;
             return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="chat-link">${match}</a>`;
         });
     }
 
-    function parseMarkdown(text) {
-        let parsed = escapeHtml(text);
-        parsed = parsed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // **bold**
-        parsed = parsed.replace(/\*(.*?)\*/g, '<em>$1</em>'); // *italic*
-        parsed = parsed.replace(/\_(.*?)\_/g, '<em>$1</em>'); // _italic_
-        parsed = parsed.replace(/\`(.*?)\`/g, '<code>$1</code>'); // `code`
-        return linkify(parsed);
-    }
-
-    // Message Rendering
     function addMessage(name, text, isOwn = false) {
-        const isScrolledToBottom = messagesDiv.scrollHeight - messagesDiv.clientHeight <= messagesDiv.scrollTop + 50;
         const div = document.createElement('div');
         div.className = 'message' + (isOwn ? ' own' : '');
         
-        const formattedText = parseMarkdown(text);
-        div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${formattedText}</div>`;
+        const safeText = escapeHtml(text);
+        const linkedText = linkify(safeText);
         
+        div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${linkedText}</div>`;
         messagesDiv.appendChild(div);
-        
-        // Smart Auto-Scroll Trigger
-        if (isScrolledToBottom || isOwn) {
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        } else {
-            scrollBottomBtn.classList.add('visible');
-        }
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
     function addSystemMessage(text) {
@@ -983,40 +837,19 @@
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
-    // E2E Encryption Methods
-    function encryptMessage(text) {
-        if (!e2eKey) return text;
-        return CryptoJS.AES.encrypt(text, e2eKey).toString();
-    }
+    function clearMessages() { messagesDiv.innerHTML = ''; }
 
-    function decryptMessage(encryptedText) {
-        if (!e2eKey) return encryptedText;
-        try {
-            const bytes = CryptoJS.AES.decrypt(encryptedText, e2eKey);
-            const originalText = bytes.toString(CryptoJS.enc.Utf8);
-            return originalText || "🔒 [Encrypted Message - Unknown Key]";
-        } catch(e) {
-            return "🔒 [Encrypted Message - Unknown Key]";
-        }
-    }
-
-    // View Management
     function showHome() {
         homeView.classList.remove('hidden');
         chatView.classList.add('hidden');
         if (currentRoomId) socket.emit('leave_room', { roomId: currentRoomId });
         currentRoomId = null;
-        messageHistory = [];
-        e2eKey = '';
-        activeTypers.clear();
-        updateTypingIndicator();
+        messageHistory = []; // Clear the local client message history
         clearMessages();
-        clearUnreadNotifications();
         joinError.classList.add('hidden');
         qrContainer.innerHTML = '';
         setCreateRoomLoading(false);
         setJoinRoomLoading(false);
-        window.history.replaceState({}, document.title, window.location.pathname);
     }
 
     function showChat(roomId) {
@@ -1026,26 +859,16 @@
         roomIdSpan.innerText = roomId;
         memberCountDisplay.innerText = "...";
         clearMessages();
-        clearUnreadNotifications();
-        
-        // --- End to End Encryption Setup ---
-        if (window.location.hash) {
-            e2eKey = window.location.hash.substring(1);
-        } else {
-            e2eKey = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-            window.location.hash = e2eKey;
-        }
-        
-        addSystemMessage(`Joined room. Chat is E2E Encrypted.`);
+        addSystemMessage(`Joined room.`);
         msgInput.focus();
         
         // P2P History Sync Call
         socket.emit('request_history', { roomId });
 
-        const directLink = `${window.location.origin}?room=${roomId}#${e2eKey}`;
+        const directLink = `${window.location.origin}?room=${roomId}`;
         qrContainer.innerHTML = '';
         qrContainer.style.cursor = 'pointer';
-        qrContainer.title = "Click to copy encrypted room link";
+        qrContainer.title = "Click to copy room link";
         
         qrContainer.onclick = () => {
             navigator.clipboard.writeText(directLink).then(() => {
@@ -1077,6 +900,7 @@
 
     function updateNickname(nick) {
         if (!nick || !nick.trim()) nick = generateRandomNick();
+        // Send the request to the server, but don't set myNick yet!
         const requestedNick = nick.trim().substring(0, 20);
         socket.emit('set_nickname', { nick: requestedNick });
     }
@@ -1084,20 +908,17 @@
     function sendMessage() {
         const text = msgInput.value.trim();
         if (!text || !currentRoomId) return;
-        
-        const encryptedPayload = encryptMessage(text);
-        socket.emit('chat_message', { roomId: currentRoomId, message: encryptedPayload });
-        
+        socket.emit('chat_message', { roomId: currentRoomId, message: text });
         msgInput.value = '';
         msgInput.focus();
-        socket.emit('typing', { roomId: currentRoomId, isTyping: false });
-        clearTimeout(typingTimeout);
     }
 
     // Connection Restoration Setup
     socket.on('connect', () => {
         const sysMessages = document.querySelectorAll('.system-message.reconnecting');
         sysMessages.forEach(msg => msg.remove());
+        
+        // Request nickname upon connection
         updateNickname(myNick || generateRandomNick());
         console.log('Connected to server');
     });
@@ -1118,38 +939,63 @@
         }
     });
 
+    // Handle Nickname Changes
     socket.on('nickname_changed', (data) => {
         const oldNick = myNick;
         myNick = data.newNick;
         nickInput.value = myNick;
-        if (oldNick && oldNick !== myNick) addSystemMessage(`Name updated to ${myNick}.`);
+        
+        // Notify the user if they actively changed it
+        if (oldNick && oldNick !== myNick) {
+            addSystemMessage(`Name updated to ${myNick}.`);
+        }
     });
 
+    // Handle Nickname Errors (Name already taken)
     socket.on('nickname_error', (data) => {
         addSystemMessage('⚠️ ' + data.error);
+        // Revert the input box to the current valid nickname
         nickInput.value = myNick;
     });
 
+    let unreadCount = 0;
+    // Clear unread notifications when the tab/window becomes active
+function clearUnreadNotifications() {
+    unreadCount = 0;
+    document.title = 'JoshChat';
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        clearUnreadNotifications();
+    }
+});
+
+window.addEventListener('focus', clearUnreadNotifications);
+window.addEventListener('click', clearUnreadNotifications);
+    
     socket.on('room_error', (data) => {
         addSystemMessage('⚠️ ' + data.error + ' Returning home...');
-        setTimeout(() => showHome(), 3000);
+        setTimeout(() => {
+            showHome();
+        }, 3000);
     });
     
-    // Live Feed Receiver
     socket.on('new_message', (data) => {
         if (data.roomId === currentRoomId) {
-            // Check if page or tab is hidden, or if the main window lacks active keyboard focus
             if ((document.hidden || !document.hasFocus()) && data.nick !== myNick) {
-                unreadCount++;
-                document.title = `(${unreadCount}) JoshChat`;
-            }
+            unreadCount++;
+            document.title = `(${unreadCount}) JoshChat`;
+        }
+            // Commit to local client history
             messageHistory.push({ nick: data.nick, message: data.message });
-            addMessage(data.nick, decryptMessage(data.message), data.nick === myNick);
+            addMessage(data.nick, data.message, data.nick === myNick);
         }
     });
 
     // P2P History Sync Handlers
     socket.on('request_history', (data) => {
+        // Master peer packages their message history and returns it
         socket.emit('send_history', {
             requesterId: data.requesterId,
             history: messageHistory
@@ -1158,17 +1004,20 @@
 
     socket.on('history_response', (data) => {
         const historicalMessages = data.history || [];
+        
+        // Sync local client history array seamlessly
         messageHistory = [...historicalMessages, ...messageHistory];
         
+        // Render history by safely prepending to prevent duplicate rendering of live streams
         const fragment = document.createDocumentFragment();
         historicalMessages.forEach(msg => {
             const div = document.createElement('div');
             div.className = 'message' + (msg.nick === myNick ? ' own' : '');
             
-            const decryptedText = decryptMessage(msg.message);
-            const formattedText = parseMarkdown(decryptedText);
+            const safeText = escapeHtml(msg.message);
+            const linkedText = linkify(safeText);
             
-            div.innerHTML = `<span class="msg-name">${escapeHtml(msg.nick === myNick ? 'You' : msg.nick)}</span><div>${formattedText}</div>`;
+            div.innerHTML = `<span class="msg-name">${escapeHtml(msg.nick === myNick ? 'You' : msg.nick)}</span><div>${linkedText}</div>`;
             fragment.appendChild(div);
         });
         
@@ -1177,11 +1026,15 @@
     });
     
     socket.on('room_notification', (notif) => {
-        if (notif.roomId === currentRoomId) addSystemMessage(notif.text);
+        if (notif.roomId === currentRoomId) {
+            addSystemMessage(notif.text);
+        }
     });
 
     socket.on('member_count', (data) => {
-        if (memberCountDisplay) memberCountDisplay.innerText = data.count;
+        if (memberCountDisplay) {
+            memberCountDisplay.innerText = data.count;
+        }
     });
     
     socket.on('room_created', (data) => {
@@ -1223,11 +1076,12 @@
     
     copyRoomBtn.addEventListener('click', () => {
         if (currentRoomId) {
-            const directLink = `${window.location.origin}?room=${currentRoomId}#${e2eKey}`;
-            navigator.clipboard.writeText(directLink);
+            navigator.clipboard.writeText(currentRoomId);
             const originalText = copyRoomBtn.innerHTML;
-            copyRoomBtn.innerHTML = '<i class="ph ph-check"></i> Copied Link';
-            setTimeout(() => { copyRoomBtn.innerHTML = originalText; }, 2000);
+            copyRoomBtn.innerHTML = '<i class="ph ph-check"></i> Copied';
+            setTimeout(() => {
+                copyRoomBtn.innerHTML = originalText;
+            }, 2000);
         }
     });
     
@@ -1239,6 +1093,7 @@
     if (roomFromUrl) {
         joinInput.value = roomFromUrl.toUpperCase();
         setTimeout(() => joinBtn.click(), 500);
+        window.history.replaceState({}, document.title, window.location.pathname);
     }
 </script>
 </body>
