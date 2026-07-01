@@ -848,15 +848,12 @@
 
     // Detect if the user has scrolled up away from the bottom
 messagesDiv.addEventListener('scroll', () => {
-    const threshold = 100; // px margin of error from the bottom
-    const isAtBottom = (messagesDiv.scrollHeight - messagesDiv.clientHeight - messagesDiv.scrollTop) < threshold;
-    
-    if (isAtBottom) {
-        scrollBottomBtn.classList.remove('visible');
-    } else {
-        scrollBottomBtn.classList.add('visible');
-    }
-});
+        if (isLastMessageVisible()) {
+            scrollBottomBtn.classList.remove('visible');
+        } else {
+            scrollBottomBtn.classList.add('visible');
+        }
+    });
 
 // Smoothly scroll back to the bottom when clicking the button
 scrollBottomBtn.addEventListener('click', () => {
@@ -875,29 +872,42 @@ scrollBottomBtn.addEventListener('click', () => {
         });
     }
 
-    function addMessage(name, text, isOwn = false) {
-    const div = document.createElement('div');
-    div.className = 'message' + (isOwn ? ' own' : '');
-    
-    const safeText = escapeHtml(text);
-    const linkedText = linkify(safeText);
-    
-    div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${linkedText}</div>`;
-    
-    // Check scroll state before adding the new element
-    const threshold = 100;
-    const wasAtBottom = (messagesDiv.scrollHeight - messagesDiv.clientHeight - messagesDiv.scrollTop) < threshold;
-    
-    messagesDiv.appendChild(div);
-    
-    // Auto-scroll ONLY if they were already at the bottom or if they sent the message
-    if (wasAtBottom || isOwn) {
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    } else {
-        // Alert them that a new message arrived above their viewport
-        scrollBottomBtn.classList.add('visible');
+    function isLastMessageVisible() {
+        const lastMsg = messagesDiv.lastElementChild;
+        // If there are no messages yet, treat it as "visible" so we scroll on the first message
+        if (!lastMsg) return true; 
+
+        const containerRect = messagesDiv.getBoundingClientRect();
+        const lastMsgRect = lastMsg.getBoundingClientRect();
+
+        // Checks if the bottom of the last message is above or at the bottom edge of the container
+        // We add a 15px buffer to account for padding/margins
+        return lastMsgRect.bottom <= (containerRect.bottom + 15);
     }
-}
+
+    function addMessage(name, text, isOwn = false) {
+        const div = document.createElement('div');
+        div.className = 'message' + (isOwn ? ' own' : '');
+        
+        const safeText = escapeHtml(text);
+        const linkedText = linkify(safeText);
+        
+        div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${linkedText}</div>`;
+        
+        // 1. Check if they can see the current last message BEFORE we add the new one
+        const wasAtBottom = isLastMessageVisible();
+        
+        // 2. Append the new message
+        messagesDiv.appendChild(div);
+        
+        // 3. Auto-scroll only if they were looking at the last message, or if they sent it themselves
+        if (wasAtBottom || isOwn) {
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        } else {
+            // Show the floating scroll-to-bottom button
+            scrollBottomBtn.classList.add('visible');
+        }
+    }
 
     function addSystemMessage(text) {
         const sys = document.createElement('div');
