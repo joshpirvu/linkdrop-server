@@ -66,29 +66,65 @@
 .scroll-bottom-btn {
     position: absolute;
     bottom: 135px; /* Positioned nicely above the chat input bar */
-    left: 50%;
-    transform: translateX(-50%) translateY(10px);
-    background: var(--btn-primary-bg);
-    color: white;
+    left: 12px; /* Margin from left edge */
+    right: 12px; /* Margin from right edge */
+    height: 1px; /* The horizontal line */
+    background: rgba(255, 255, 255, 0.15); /* Soft line for dark theme */
     border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     opacity: 0;
     pointer-events: none;
     transition: all 0.2s ease;
     z-index: 100;
+    transform: translateY(10px);
+}
+
+body:not(.dark) .scroll-bottom-btn {
+    background: rgba(0, 0, 0, 0.12); /* Soft line for light theme */
+}
+
+/* The premium pill sitting exactly in the middle of the line */
+.scroll-bottom-btn .unread-pill {
+    background: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+    backdrop-filter: blur(4px); /* Modern frosted-glass effect */
+    -webkit-backdrop-filter: blur(4px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.15); /* Soft border for dark/light themes */
+    border-radius: 20px; /* Premium pill shape */
+    padding: 0 16px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Space between the text and arrow */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap; /* Prevents text wrapping inside the pill */
+    transition: background 0.2s ease;
+}
+
+body:not(.dark) .scroll-bottom-btn .unread-pill {
+    background: rgba(0, 0, 0, 0.75); /* Darker contrast for light mode readability */
+}
+
+.scroll-bottom-btn:hover .unread-pill {
+    background: rgba(0, 0, 0, 0.85); /* Slightly darker contrast on hover */
 }
 
 .scroll-bottom-btn.visible {
-    opacity: .67;
-    transform: translateX(-50%) translateY(0);
+    opacity: 0.67;
+    transform: translateY(0);
     pointer-events: auto;
+}
+
+.scroll-bottom-btn i {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
 }
 
 
@@ -704,8 +740,10 @@
                 <!-- Messages will appear here -->
             </div>
             <button id="scrollToBottomBtn" class="scroll-bottom-btn" title="Scroll to bottom">
-                <span id="scrollBtnText"></span>
-                <i class="ph ph-caret-down" style="font-size: 20px;"></i>
+                <span class="unread-pill">
+                    <span id="scrollBtnText"></span>
+                    <i class="ph ph-caret-down"></i>
+                </span>
             </button>
             <div class="chat-input-area">
                 <input type="text" id="messageInput" placeholder="Message..." autocomplete="off">
@@ -862,7 +900,7 @@ messagesDiv.addEventListener('scroll', () => {
     }
 });
 
-// Smoothly scroll back to the bottom when clicking the button
+// Smoothly scroll back to the bottom when clicking the button/bar
 scrollBottomBtn.addEventListener('click', () => {
     messagesDiv.scrollTo({
         top: messagesDiv.scrollHeight,
@@ -912,10 +950,9 @@ scrollBottomBtn.addEventListener('click', () => {
     
     div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${linkedText}</div>`;
     
-    // Tighter threshold (15px) for scroll detection
     const threshold = 15;
     
-    // Check if the tab is focused and the user is looking at the bottom
+    // Check if the tab is actively focused and you are looking at the bottom
     const isTabFocused = !document.hidden && document.hasFocus();
     const wasAtBottom = isTabFocused && (messagesDiv.scrollHeight - messagesDiv.clientHeight - messagesDiv.scrollTop) < threshold;
     
@@ -926,7 +963,7 @@ scrollBottomBtn.addEventListener('click', () => {
         unreadChatCount = 0;
         updateScrollButtonUI();
     } else {
-        // Increment unread count for messages received while scrolled up or out-of-focus
+        // Increment count and show the unread divider if scrolled up or unfocused
         unreadChatCount++;
         updateScrollButtonUI();
         scrollBottomBtn.classList.add('visible');
