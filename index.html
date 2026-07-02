@@ -1321,6 +1321,11 @@ socket.on('join_result', (data) => {
     sendBtn.addEventListener('click', sendMessage);
     msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     leaveBtn.addEventListener('click', showHome);
+    joinInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        joinBtn.click();
+        }
+    });
     
     copyRoomBtn.addEventListener('click', () => {
         if (currentRoomId) {
