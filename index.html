@@ -413,21 +413,103 @@
         }
 
         /* Message Actions (Edit, Delete, Like) */
+/* Message Actions (Edit, Delete, Like) - Instagram Style */
+        .message {
+            position: relative; /* Critical anchor for absolute positioning */
+            max-width: 75%; /* Leaves margin so the action buttons don't overflow the screen */
+        }
+
         .msg-actions {
-            display: flex; gap: 6px; margin-top: 6px; opacity: 0; transition: opacity 0.2s;
+            display: flex;
+            flex-direction: row;
+            gap: 6px;
+            position: absolute;
+            top: 50%;
+            
+            /* Default for received messages: Positioned outside the RIGHT edge of the bubble */
+            left: calc(100% + 8px);
+            transform: translateY(-50%) translateX(-10px);
+            
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
         }
-        @media (hover: none) { .msg-actions { opacity: 1; } }
-        .message:hover .msg-actions { opacity: 1; }
-        
+
+        /* For your own messages: Positioned outside the LEFT edge of the bubble */
+        .message.own .msg-actions {
+            left: auto;
+            right: calc(100% + 8px);
+            transform: translateY(-50%) translateX(10px);
+        }
+
+        /* Hover & Keyboard Focus (Smooth Slide/Fade In) */
+        @media (hover: none) { 
+            .msg-actions { opacity: 1; visibility: visible; transform: translateY(-50%) translateX(0); } 
+        }
+        .message:hover .msg-actions,
+        .msg-actions:focus-within {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) translateX(0); /* Slides gently outward into place */
+        }
+
+        /* Circular Floating Action Buttons */
         .msg-actions button {
-            background: rgba(0,0,0,0.05); border: none; border-radius: 6px;
-            padding: 4px 8px; font-size: 0.8rem; cursor: pointer; color: var(--message-text);
-            display: flex; align-items: center; gap: 4px; transition: background 0.2s;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            color: var(--message-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative; /* Anchors the like badge */
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        body.dark .msg-actions button { background: rgba(255,255,255,0.1); color: var(--message-text); }
-        .msg-actions button:hover { background: rgba(0,0,0,0.1); }
-        body.dark .msg-actions button:hover { background: rgba(255,255,255,0.2); }
-        .like-btn.liked { color: #e91e63; }
+
+        body.dark .msg-actions button {
+            background: var(--container-bg);
+            border-color: var(--card-border);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+        }
+
+        .msg-actions button:hover {
+            transform: scale(1.15); /* Slight pop effect on hover */
+            color: var(--btn-primary-bg);
+        }
+        
+        body.dark .msg-actions button:hover {
+            color: white;
+            background: var(--btn-primary-hover);
+            border-color: var(--btn-primary-bg);
+        }
+
+        .like-btn.liked { color: #e91e63 !important; }
+        
+        /* Small badge styling for the like count on the circular button */
+        .like-count { display: none; }
+        .like-btn.liked .like-count {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #e91e63;
+            color: white;
+            font-size: 0.65rem;
+            min-width: 16px;
+            height: 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
         .edited-tag { font-size: 0.65rem; opacity: 0.7; margin-left: 6px; font-style: italic; }
 
         .chat-link {
