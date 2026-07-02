@@ -73,21 +73,21 @@ io.on('connection', (socket) => {
             roomTimeouts.delete(roomId);
             console.log(`Timeout cancelled for room ${roomId}`);
         }
-        
+
         socket.join(roomId);
         rooms.get(roomId).add(socket.id);
         socket.emit('join_result', { success: true, roomId });
-        
+
         const nick = userNicks.get(socket.id) || 'Anonymous';
         socket.to(roomId).emit('room_notification', { roomId, text: `${nick} joined the room` });
         socket.emit('room_notification', { roomId, text: `Joined room ${roomId}` });
-        
+
         // Broadcast updated member count to everyone in the room
         io.to(roomId).emit('member_count', { count: rooms.get(roomId).size });
         console.log(`${socket.id} joined ${roomId}. Members: ${rooms.get(roomId).size}`);
     });
 
-    socket.on('chat_message', ({ roomId, message }) => {
+    socket.on('chat_message', ({ roomId, message, msgId }) => {
         if (!roomId || !rooms.has(roomId)) {
             // Tell the frontend that the room expired so it can recover gracefully
             return socket.emit('room_error', { error: 'Room does not exist or has expired.' });
@@ -96,9 +96,33 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('new_message', {
             roomId,
             nick,
-            message: message.substring(0, 500),
+            message: message.substring(0, 2000), // Increased from 500 to allow for E2EE cipher strings
+            msgId,
             timestamp: Date.now()
         });
+    });
+
+    // NEW: Message Actions
+    socket.on('edit_message', ({ roomId, msgId, newText }) => {
+        if (!roomId || !rooms.has(roomId)) return;
+        socket.to(roomId).emit('message_edited', { msgId, newText: newText.substring(0, 2000) });
+    });
+
+    socket.on('delete_message', ({ roomId, msgId }) => {
+        if (!roomId || !rooms.has(roomId)) return;
+        socket.to(roomId).emit('message_deleted', { msgId });
+    });
+
+    socket.on('toggle_like', ({ roomId, msgId, likerNick }) => {
+        if (!roomId || !rooms.has(roomId)) return;
+        socket.to(roomId).emit('message_liked', { msgId, likerNick });
+    });
+
+    // NEW: Handle Typing Indicators
+    socket.on('typing', ({ roomId, isTyping }) => {
+        if (!roomId || !rooms.has(roomId)) return;
+        const nick = userNicks.get(socket.id) || 'Someone';
+        socket.to(roomId).emit('user_typing', { nick, isTyping });
     });
 
     // P2P History Sync Signalling:
