@@ -1125,6 +1125,11 @@ scrollBottomBtn.addEventListener('click', () => {
         
         // Request nickname upon connection
         updateNickname(myNick || generateRandomNick());
+
+        // FIX: If we were already in a room, silently rejoin on the server
+        if (currentRoomId) {
+            socket.emit('join_room', { roomId: currentRoomId });
+        }
         console.log('Connected to server');
     });
 
@@ -1262,17 +1267,28 @@ window.addEventListener('click', clearUnreadNotifications);
         showChat(data.roomId);
     });
     
-    socket.on('join_result', (data) => {
+socket.on('join_result', (data) => {
         setJoinRoomLoading(false);
         if (data.success) {
-            showChat(data.roomId);
+            // FIX: If we are already looking at the room, just silently reconnect without wiping history
+            if (currentRoomId === data.roomId && !chatView.classList.contains('hidden')) {
+                addSystemMessage('Connection restored. Rejoined chat.');
+            } else {
+                showChat(data.roomId);
+            }
         } else {
-            joinError.innerText = data.error || 'Room does not exist';
-            joinError.classList.remove('hidden');
-            setTimeout(() => joinError.classList.add('hidden'), 3000);
+            // FIX: If room expired on the server while you were away, go back home gracefully
+            if (currentRoomId === data.roomId) {
+                addSystemMessage('⚠️ Room session expired while you were away.');
+                setTimeout(() => showHome(), 2500);
+            } else {
+                joinError.innerText = data.error || 'Room does not exist';
+                joinError.classList.remove('hidden');
+                setTimeout(() => joinError.classList.add('hidden'), 3000);
+            }
         }
     });
-
+    
     makeBtn.addEventListener('click', () => {
         setCreateRoomLoading(true);
         socket.emit('create_room');
