@@ -933,13 +933,17 @@ messagesDiv.addEventListener('scroll', () => {
     const threshold = 15;
     const isAtBottom = (messagesDiv.scrollHeight - messagesDiv.clientHeight - messagesDiv.scrollTop) < threshold;
     
-    if (isAtBottom) {
+    // Check if a scrollbar actually exists
+    const isScrollable = messagesDiv.scrollHeight > messagesDiv.clientHeight;
+    
+    if (isAtBottom || !isScrollable) {
         scrollBottomBtn.classList.remove('visible');
-        clearUnreadDividers();
+        clearUnreadDividers(); // Cleanly resets states
     } else {
         scrollBottomBtn.classList.add('visible');
     }
 });
+
 
 // Smoothly scroll back to the bottom when clicking the button
 scrollBottomBtn.addEventListener('click', () => {
@@ -991,22 +995,33 @@ scrollBottomBtn.addEventListener('click', () => {
     div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${linkedText}</div>`;
     
     const threshold = 15;
-    
-    // Check if the tab is actively focused and you are looking at the bottom
     const isTabFocused = !document.hidden && document.hasFocus();
     const wasAtBottom = isTabFocused && (messagesDiv.scrollHeight - messagesDiv.clientHeight - messagesDiv.scrollTop) < threshold;
     
-    // If we are scrolled up/looking away, and it's not our own message:
-    if (!wasAtBottom && !isOwn) {
+    // 1. Append the message element first
+    messagesDiv.appendChild(div);
+    
+    // 2. Measure if the container is tall enough to scroll after appending
+    const isScrollable = messagesDiv.scrollHeight > messagesDiv.clientHeight;
+    
+    // 3. Determine if we should automatically scroll down
+    // FIX: Only auto-scroll if it's our own message, OR if the tab is focused AND we were at the bottom (or there is no scrollbar)
+    if (isOwn || (isTabFocused && (wasAtBottom || !isScrollable))) {
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        clearUnreadDividers(); // Wipes inline lines and badge counters
+    } else {
+        // Increment unread count only if we are scrolled up OR the tab is unfocused (even if not scrollable)
         unreadChatCount++;
         
-        // If this is the FIRST unread message, insert the scrollable inline divider
+        // If this is the FIRST unread message, insert the divider exactly ABOVE it
         if (unreadChatCount === 1) {
             const divider = document.createElement('div');
             divider.id = 'unreadDivider';
             divider.className = 'unread-divider';
             divider.innerHTML = `<span class="unread-pill"><span id="unreadPillText">1 new message</span></span>`;
-            messagesDiv.appendChild(divider);
+            
+            // Insert right above the newly added message element (div)
+            messagesDiv.insertBefore(divider, div);
         } else {
             // Update the text on the existing inline divider
             const pillText = document.getElementById('unreadPillText');
@@ -1015,22 +1030,19 @@ scrollBottomBtn.addEventListener('click', () => {
             }
         }
         
-        // Update the floating action button badge
+        // Update the badge on the floating scroll-to-bottom button
         const scrollBadge = document.getElementById('scrollBadge');
         if (scrollBadge) {
             scrollBadge.innerText = unreadChatCount;
             scrollBadge.classList.remove('hidden');
         }
-    }
-    
-    // Append the new message
-    messagesDiv.appendChild(div);
-    
-    if (wasAtBottom || isOwn) {
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        clearUnreadDividers();
-    } else {
-        scrollBottomBtn.classList.add('visible');
+        
+        // Only show the floating scroll-to-bottom button if the chat has an active scrollbar
+        if (isScrollable) {
+            scrollBottomBtn.classList.add('visible');
+        } else {
+            scrollBottomBtn.classList.remove('visible');
+        }
     }
 }
 
@@ -1125,6 +1137,11 @@ scrollBottomBtn.addEventListener('click', () => {
         
         // Request nickname upon connection
         updateNickname(myNick || generateRandomNick());
+
+        // FIX: If we were already in a room, silently rejoin on the server
+        if (currentRoomId) {
+            socket.emit('join_room', { roomId: currentRoomId });
+        }
         console.log('Connected to server');
     });
 
@@ -1262,17 +1279,28 @@ window.addEventListener('click', clearUnreadNotifications);
         showChat(data.roomId);
     });
     
-    socket.on('join_result', (data) => {
+socket.on('join_result', (data) => {
         setJoinRoomLoading(false);
         if (data.success) {
-            showChat(data.roomId);
+            // FIX: If we are already looking at the room, just silently reconnect without wiping history
+            if (currentRoomId === data.roomId && !chatView.classList.contains('hidden')) {
+                addSystemMessage('Connection restored. Rejoined chat.');
+            } else {
+                showChat(data.roomId);
+            }
         } else {
-            joinError.innerText = data.error || 'Room does not exist';
-            joinError.classList.remove('hidden');
-            setTimeout(() => joinError.classList.add('hidden'), 3000);
+            // FIX: If room expired on the server while you were away, go back home gracefully
+            if (currentRoomId === data.roomId) {
+                addSystemMessage('⚠️ Room session expired while you were away.');
+                setTimeout(() => showHome(), 2500);
+            } else {
+                joinError.innerText = data.error || 'Room does not exist';
+                joinError.classList.remove('hidden');
+                setTimeout(() => joinError.classList.add('hidden'), 3000);
+            }
         }
     });
-
+    
     makeBtn.addEventListener('click', () => {
         setCreateRoomLoading(true);
         socket.emit('create_room');
@@ -1293,6 +1321,11 @@ window.addEventListener('click', clearUnreadNotifications);
     sendBtn.addEventListener('click', sendMessage);
     msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     leaveBtn.addEventListener('click', showHome);
+    joinInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        joinBtn.click();
+        }
+    });
     
     copyRoomBtn.addEventListener('click', () => {
         if (currentRoomId) {
