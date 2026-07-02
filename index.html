@@ -59,60 +59,87 @@
             
         }
 
-        #chatView {
+#chatView {
     position: relative; /* Crucial for absolute positioning of the floating button */
 }
 
-.scroll-bottom-btn {
-    position: absolute;
-    bottom: 135px; /* Positioned nicely above the chat input bar */
-    left: 12px; /* Margin from left edge */
-    right: 12px; /* Margin from right edge */
-    height: 1px; /* The horizontal line */
-    background: rgba(255, 255, 255, 0.15); /* Soft line for dark theme */
-    border: none;
+/* 1. The Inline WhatsApp-style Unread Divider (placed above first unread message) */
+.unread-divider {
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.2s ease;
-    z-index: 100;
-    transform: translateY(10px);
+    position: relative;
+    margin: 1.5rem 0;
+    width: 100%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15); /* Soft line for dark theme */
+    z-index: 5;
+    animation: fadeIn 0.25s ease-out;
+    flex-shrink: 0;
 }
 
-body:not(.dark) .scroll-bottom-btn {
+body:not(.dark) .unread-divider {
     background: rgba(0, 0, 0, 0.12); /* Soft line for light theme */
 }
 
 /* The premium pill sitting exactly in the middle of the line */
-.scroll-bottom-btn .unread-pill {
-    background: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+.unread-divider .unread-pill {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Centered exactly on the horizontal line */
+    background: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
     backdrop-filter: blur(4px); /* Modern frosted-glass effect */
     -webkit-backdrop-filter: blur(4px);
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.15); /* Soft border for dark/light themes */
     border-radius: 20px; /* Premium pill shape */
     padding: 0 16px;
-    height: 38px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px; /* Space between the text and arrow */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    font-size: 0.85rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    font-size: 0.8rem;
     font-weight: 600;
     white-space: nowrap; /* Prevents text wrapping inside the pill */
-    transition: background 0.2s ease;
 }
 
-body:not(.dark) .scroll-bottom-btn .unread-pill {
-    background: rgba(0, 0, 0, 0.75); /* Darker contrast for light mode readability */
+body:not(.dark) .unread-divider .unread-pill {
+    background: rgba(0, 0, 0, 0.8);
 }
 
-.scroll-bottom-btn:hover .unread-pill {
-    background: rgba(0, 0, 0, 0.85); /* Slightly darker contrast on hover */
+/* 2. Sleek Floating Scroll-To-Bottom Button (FAB) in the Bottom Right */
+.scroll-bottom-btn {
+    position: absolute;
+    bottom: 135px; /* Positioned nicely above the chat input bar */
+    right: 1.5rem;
+    width: 42px;
+    height: 42px;
+    background: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50%; /* Circular button */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    transform: translateY(10px);
+}
+
+body:not(.dark) .scroll-bottom-btn {
+    background: rgba(0, 0, 0, 0.75);
+}
+
+.scroll-bottom-btn:hover {
+    background: rgba(0, 0, 0, 0.85);
+    transform: scale(1.05);
 }
 
 .scroll-bottom-btn.visible {
@@ -122,9 +149,26 @@ body:not(.dark) .scroll-bottom-btn .unread-pill {
 }
 
 .scroll-bottom-btn i {
-    font-size: 14px;
+    font-size: 18px;
     display: flex;
     align-items: center;
+}
+
+/* Unread Badge floating on top of the Scroll FAB */
+.scroll-bottom-btn .badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #1c6d8f; /* Primary accent theme color */
+    color: white;
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 18px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.2s ease-out;
 }
 
 
@@ -740,10 +784,8 @@ body:not(.dark) .scroll-bottom-btn .unread-pill {
                 <!-- Messages will appear here -->
             </div>
             <button id="scrollToBottomBtn" class="scroll-bottom-btn" title="Scroll to bottom">
-                <span class="unread-pill">
-                    <span id="scrollBtnText"></span>
-                    <i class="ph ph-caret-down"></i>
-                </span>
+                <i class="ph ph-caret-down"></i>
+                <span id="scrollBadge" class="badge hidden">0</span>
             </button>
             <div class="chat-input-area">
                 <input type="text" id="messageInput" placeholder="Message..." autocomplete="off">
@@ -893,21 +935,19 @@ messagesDiv.addEventListener('scroll', () => {
     
     if (isAtBottom) {
         scrollBottomBtn.classList.remove('visible');
-        unreadChatCount = 0;
-        updateScrollButtonUI();
+        clearUnreadDividers();
     } else {
         scrollBottomBtn.classList.add('visible');
     }
 });
 
-// Smoothly scroll back to the bottom when clicking the button/bar
+// Smoothly scroll back to the bottom when clicking the button
 scrollBottomBtn.addEventListener('click', () => {
     messagesDiv.scrollTo({
         top: messagesDiv.scrollHeight,
         behavior: 'smooth'
     });
-    unreadChatCount = 0;
-    updateScrollButtonUI();
+    clearUnreadDividers();
 });
     
     function linkify(text) {
@@ -956,16 +996,40 @@ scrollBottomBtn.addEventListener('click', () => {
     const isTabFocused = !document.hidden && document.hasFocus();
     const wasAtBottom = isTabFocused && (messagesDiv.scrollHeight - messagesDiv.clientHeight - messagesDiv.scrollTop) < threshold;
     
+    // If we are scrolled up/looking away, and it's not our own message:
+    if (!wasAtBottom && !isOwn) {
+        unreadChatCount++;
+        
+        // If this is the FIRST unread message, insert the scrollable inline divider
+        if (unreadChatCount === 1) {
+            const divider = document.createElement('div');
+            divider.id = 'unreadDivider';
+            divider.className = 'unread-divider';
+            divider.innerHTML = `<span class="unread-pill"><span id="unreadPillText">1 new message</span></span>`;
+            messagesDiv.appendChild(divider);
+        } else {
+            // Update the text on the existing inline divider
+            const pillText = document.getElementById('unreadPillText');
+            if (pillText) {
+                pillText.innerText = `${unreadChatCount} new messages`;
+            }
+        }
+        
+        // Update the floating action button badge
+        const scrollBadge = document.getElementById('scrollBadge');
+        if (scrollBadge) {
+            scrollBadge.innerText = unreadChatCount;
+            scrollBadge.classList.remove('hidden');
+        }
+    }
+    
+    // Append the new message
     messagesDiv.appendChild(div);
     
     if (wasAtBottom || isOwn) {
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        unreadChatCount = 0;
-        updateScrollButtonUI();
+        clearUnreadDividers();
     } else {
-        // Increment count and show the unread divider if scrolled up or unfocused
-        unreadChatCount++;
-        updateScrollButtonUI();
         scrollBottomBtn.classList.add('visible');
     }
 }
@@ -1104,6 +1168,21 @@ scrollBottomBtn.addEventListener('click', () => {
 function clearUnreadNotifications() {
     unreadCount = 0;
     document.title = 'JoshChat';
+}
+
+    function clearUnreadDividers() {
+    unreadChatCount = 0;
+    
+    // Remove the inline scrollable divider if it exists
+    const divider = document.getElementById('unreadDivider');
+    if (divider) divider.remove();
+    
+    // Hide the unread count badge on the floating button
+    const scrollBadge = document.getElementById('scrollBadge');
+    if (scrollBadge) {
+        scrollBadge.classList.add('hidden');
+        scrollBadge.innerText = "0";
+    }
 }
 
 document.addEventListener('visibilitychange', () => {
