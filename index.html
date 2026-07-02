@@ -938,12 +938,12 @@ messagesDiv.addEventListener('scroll', () => {
     
     if (isAtBottom || !isScrollable) {
         scrollBottomBtn.classList.remove('visible');
-        unreadChatCount = 0;
-        updateScrollButtonUI();
+        clearUnreadDividers(); // Cleanly resets states
     } else {
         scrollBottomBtn.classList.add('visible');
     }
 });
+
 
 // Smoothly scroll back to the bottom when clicking the button
 scrollBottomBtn.addEventListener('click', () => {
@@ -1005,11 +1005,12 @@ scrollBottomBtn.addEventListener('click', () => {
     const isScrollable = messagesDiv.scrollHeight > messagesDiv.clientHeight;
     
     // 3. Determine if we should automatically scroll down
-    if (wasAtBottom || isOwn || !isScrollable) {
+    // FIX: Only auto-scroll if it's our own message, OR if the tab is focused AND we were at the bottom (or there is no scrollbar)
+    if (isOwn || (isTabFocused && (wasAtBottom || !isScrollable))) {
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
         clearUnreadDividers(); // Wipes inline lines and badge counters
     } else {
-        // Increment unread count only if chat is actively scrollable and we are looking away
+        // Increment unread count only if we are scrolled up OR the tab is unfocused (even if not scrollable)
         unreadChatCount++;
         
         // If this is the FIRST unread message, insert the divider exactly ABOVE it
@@ -1036,7 +1037,12 @@ scrollBottomBtn.addEventListener('click', () => {
             scrollBadge.classList.remove('hidden');
         }
         
-        scrollBottomBtn.classList.add('visible');
+        // Only show the floating scroll-to-bottom button if the chat has an active scrollbar
+        if (isScrollable) {
+            scrollBottomBtn.classList.add('visible');
+        } else {
+            scrollBottomBtn.classList.remove('visible');
+        }
     }
 }
 
