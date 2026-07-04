@@ -1123,17 +1123,44 @@ scrollBottomBtn.addEventListener('click', () => {
         qrContainer.style.cursor = 'pointer';
         qrContainer.title = "Click to copy room link";
         
-        qrContainer.onclick = () => {
-            navigator.clipboard.writeText(directLink).then(() => {
-                const originalTitle = qrContainer.title;
-                qrContainer.title = "Copied!";
-                qrContainer.style.borderColor = "#1c6d8f";
-                setTimeout(() => {
-                    qrContainer.title = originalTitle;
-                    qrContainer.style.borderColor = "transparent";
-                }, 1500);
-            });
-        };
+let copyTimeout = null;
+
+const copyLink = () => {
+    navigator.clipboard.writeText(directLink).then(() => {
+        
+        if (copyTimeout) clearTimeout(copyTimeout);
+
+        const originalTitle = qrContainer.title;
+        qrContainer.title = "Copied!";
+        qrContainer.style.borderColor = "#1c6d8f";
+
+        const qrLabel = document.getElementById('qrLabel');
+        if (qrLabel) {
+            const originalLabelHTML = qrLabel.innerHTML;
+            qrLabel.innerHTML = 'Copied!'; 
+            copyTimeout = setTimeout(() => {
+                qrLabel.innerHTML = originalLabelHTML;
+                qrContainer.title = originalTitle;
+                qrContainer.style.borderColor = "transparent";
+                copyTimeout = null;
+            }, 1500);
+        } else {
+            
+            copyTimeout = setTimeout(() => {
+                qrContainer.title = originalTitle;
+                qrContainer.style.borderColor = "transparent";
+                copyTimeout = null;
+            }, 1500);
+        }
+    });
+};
+
+qrContainer.onclick = copyLink;
+
+const qrLabel = document.getElementById('qrLabel');
+if (qrLabel) {
+    qrLabel.onclick = copyLink;
+}
 
         try {
             new QRCode(qrContainer, {
