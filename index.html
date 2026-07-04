@@ -510,24 +510,34 @@ body:not(.dark) .scroll-bottom-btn {
         }
 
         .qr-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin: 10px 0;
-        }
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0;
+}
 
-        .qr-label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--btn-outline-text);
-            font-weight: 500;
-            font-size: 0.9rem;
-            cursor: default;
-            user-select: none;
-        }
+	.qr-label {
+    	display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--btn-outline-text);
+    font-weight: 500;
+    font-size: 0.85rem;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 12px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.qr-label:hover {
+    background: var(--btn-outline-hover-bg);
+}
+
+body.dark .qr-label:hover {
+    background: var(--btn-outline-hover-bg);
+}
 
         /* NEW ACTIONS ROW - Holds Member count and Nick section together */
         .room-actions-row {
@@ -788,8 +798,8 @@ body:not(.dark) .scroll-bottom-btn {
                 
                 <div class="qr-wrapper">
                     <div class="qr-container" id="qrContainer"></div>
-                    <div class="qr-label">
-                        <i class="ph ph-arrow-left"></i> Click to copy room link
+                    <div class="qr-label" id="qrLabel">
+                        <i class="ph ph-arrow-up"></i> Click to copy room link
                     </div>
                 </div>
                 
