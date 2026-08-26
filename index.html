@@ -730,6 +730,120 @@ body.dark .qr-label:hover {
             font-weight: 500;
         }
 
+        /* --- Image messages (pasted from clipboard) --- */
+        .message .msg-image {
+            display: block;
+            max-width: 100%;
+            max-height: 320px;
+            border-radius: 8px;
+            margin-top: 2px;
+            cursor: zoom-in;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .message .msg-image + div {
+            margin-top: 6px; /* Space between the image and its caption */
+        }
+
+        .msg-image-missing {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        /* Preview strip shown above the input while an image is waiting to be sent */
+        .image-preview-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+            margin-bottom: 8px;
+            background: var(--join-area-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .image-preview-bar img {
+            width: 56px;
+            height: 56px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: var(--card-bg);
+            flex-shrink: 0;
+        }
+
+        .image-preview-text {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            color: var(--btn-outline-text);
+        }
+
+        .image-preview-text strong {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .image-preview-text span {
+            font-size: 0.75rem;
+            color: var(--footer-text);
+        }
+
+        .image-preview-bar button {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: var(--leave-btn-bg);
+            color: var(--leave-btn-text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+            transition: opacity 0.2s;
+        }
+
+        .image-preview-bar button:hover {
+            opacity: 0.85;
+        }
+
+        /* Lift the scroll-to-bottom button above the preview bar while it is showing */
+        #chatView.has-pending-image .scroll-bottom-btn {
+            bottom: 217px;
+        }
+
+        /* Full-size view when an image in the chat is clicked */
+        .image-lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            cursor: zoom-out;
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        .image-lightbox img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
         .hidden { display: none !important; }
 
         footer {
@@ -823,6 +937,15 @@ body.dark .qr-label:hover {
                 <i class="ph ph-caret-down"></i>
                 <span id="scrollBadge" class="badge hidden">0</span>
             </button>
+            <!-- Pasted image waiting to be sent -->
+            <div id="imagePreviewBar" class="image-preview-bar hidden">
+                <img id="imagePreview" alt="Image preview">
+                <div class="image-preview-text">
+                    <strong id="imagePreviewMeta">Image ready to send</strong>
+                    <span>Add a caption or press Send</span>
+                </div>
+                <button id="cancelImageBtn" type="button" title="Remove image"><i class="ph ph-x"></i></button>
+            </div>
             <div class="chat-input-area">
                 <input type="text" id="messageInput" placeholder="Message..." autocomplete="off">
                 <button id="sendMsgBtn">Send</button>
@@ -832,6 +955,11 @@ body.dark .qr-label:hover {
         </div>
     </div>
     <footer>Made by Josh Pirvu</footer>
+</div>
+
+<!-- Full-size image viewer (click anywhere or press Esc to close) -->
+<div id="imageLightbox" class="image-lightbox hidden">
+    <img id="lightboxImg" alt="Full size image">
 </div>
 
 <script>
@@ -900,6 +1028,13 @@ body.dark .qr-label:hover {
     const updateNickBtn = document.getElementById('updateNickBtn');
     const qrContainer = document.getElementById('qrContainer');
     const memberCountDisplay = document.getElementById('memberCountDisplay');
+    // Image paste elements
+    const imagePreviewBar = document.getElementById('imagePreviewBar');
+    const imagePreview = document.getElementById('imagePreview');
+    const imagePreviewMeta = document.getElementById('imagePreviewMeta');
+    const cancelImageBtn = document.getElementById('cancelImageBtn');
+    const lightbox = document.getElementById('imageLightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
 
     // Handle create room loading state
     let createRoomTimeout = null;
@@ -955,10 +1090,12 @@ body.dark .qr-label:hover {
     }
 
     function escapeHtml(str) {
-        return str.replace(/[&<>]/g, function(m) {
+        return str.replace(/[&<>"']/g, function(m) {
             if (m === '&') return '&amp;';
             if (m === '<') return '&lt;';
             if (m === '>') return '&gt;';
+            if (m === '"') return '&quot;';
+            if (m === "'") return '&#39;';
             return m;
         });
     }
@@ -1021,14 +1158,37 @@ scrollBottomBtn.addEventListener('click', () => {
         return lastMsgRect.bottom <= (containerRect.bottom + 15);
     }
 
-    function addMessage(name, text, isOwn = false) {
-    const div = document.createElement('div');
-    div.className = 'message' + (isOwn ? ' own' : '');
-    
-    const safeText = escapeHtml(text);
-    const linkedText = linkify(safeText);
-    
-    div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span><div>${linkedText}</div>`;
+    // Creates a chat bubble. `image` is a data URL (or null); `imageOmitted` marks an image that
+    // was left out of the history sync because it was too old to fit in the payload.
+    function buildMessageElement(name, text, isOwn, image = null, imageOmitted = false) {
+        const div = document.createElement('div');
+        div.className = 'message' + (isOwn ? ' own' : '');
+
+        const safeText = escapeHtml(text || '');
+        const linkedText = linkify(safeText);
+
+        div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span>` + (safeText ? `<div>${linkedText}</div>` : '');
+
+        if (image) {
+            const img = document.createElement('img');
+            img.className = 'msg-image';
+            img.alt = 'Image';
+            img.title = 'Click to enlarge';
+            img.src = image; // Set as a property, never through an HTML string
+            img.addEventListener('click', () => openLightbox(image));
+            div.insertBefore(img, div.children[1] || null);
+        } else if (imageOmitted) {
+            const note = document.createElement('div');
+            note.className = 'msg-image-missing';
+            note.innerHTML = '<i class="ph ph-image"></i> Image not available';
+            div.insertBefore(note, div.children[1] || null);
+        }
+
+        return div;
+    }
+
+    function addMessage(name, text, isOwn = false, image = null) {
+    const div = buildMessageElement(name, text, isOwn, image);
     
     const threshold = 15;
     const isTabFocused = !document.hidden && document.hasFocus();
@@ -1044,6 +1204,7 @@ scrollBottomBtn.addEventListener('click', () => {
     // FIX: Only auto-scroll if it's our own message, OR if the tab is focused AND we were at the bottom (or there is no scrollbar)
     if (isOwn || (isTabFocused && (wasAtBottom || !isScrollable))) {
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        stickToBottomOnImageLoad(div);
         clearUnreadDividers(); // Wipes inline lines and badge counters
     } else {
         // Increment unread count only if we are scrolled up OR the tab is unfocused (even if not scrollable)
@@ -1099,6 +1260,7 @@ scrollBottomBtn.addEventListener('click', () => {
         currentRoomId = null;
         messageHistory = []; // Clear the local client message history
         clearMessages();
+        clearPendingImage();
         joinError.classList.add('hidden');
         qrContainer.innerHTML = '';
         setCreateRoomLoading(false);
@@ -1112,6 +1274,7 @@ scrollBottomBtn.addEventListener('click', () => {
         roomIdSpan.innerText = roomId;
         memberCountDisplay.innerText = "...";
         clearMessages();
+        clearPendingImage();
         addSystemMessage(`Joined room.`);
         msgInput.focus();
         
@@ -1187,10 +1350,196 @@ if (qrLabel) {
 
     function sendMessage() {
         const text = msgInput.value.trim();
-        if (!text || !currentRoomId) return;
-        socket.emit('chat_message', { roomId: currentRoomId, message: text });
+        if (!currentRoomId) return;
+        if (pendingImage) {
+            // Image message: the caption is optional
+            socket.emit('chat_message', { roomId: currentRoomId, message: text, image: pendingImage });
+            clearPendingImage();
+        } else {
+            if (!text) return;
+            socket.emit('chat_message', { roomId: currentRoomId, message: text });
+        }
         msgInput.value = '';
         msgInput.focus();
+    }
+
+    // ===== Image messages (paste from clipboard) =====
+    const IMAGE_MAX_DIMENSION = 1920;              // Longest side after downscaling
+    const IMAGE_TARGET_CHARS = 500 * 1024;         // ~375 KB of actual image data once the base64 is decoded
+    const HISTORY_SYNC_BUDGET = 5 * 1024 * 1024;   // Max size of the history payload sent to someone who joins
+    const IMAGE_DATA_URL_PATTERN = /^data:image\/(png|jpeg|gif|webp);base64,[A-Za-z0-9+\/]+=*$/;
+
+    let pendingImage = null;   // Data URL waiting in the preview bar
+    let imageJobId = 0;        // Lets a newer paste win over one that is still being processed
+
+    function isSafeImage(value) {
+        return typeof value === 'string' && IMAGE_DATA_URL_PATTERN.test(value);
+    }
+
+    function readFileAsDataURL(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(reader.error || new Error('Could not read file'));
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function loadImage(src) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('Could not decode image'));
+            img.src = src;
+        });
+    }
+
+    // Turns a pasted file into a data URL small enough to send through the socket.
+    // Small PNG/JPEG/GIF/WebP files are kept exactly as they are (keeps transparency and GIF animation);
+    // anything bigger is downscaled and re-encoded as JPEG until it fits the target size.
+    async function prepareImageForSending(file) {
+        if (file.size > 40 * 1024 * 1024) throw new Error('Image is too large');
+        const original = await readFileAsDataURL(file);
+        const img = await loadImage(original);
+        const w = img.naturalWidth, h = img.naturalHeight;
+        if (!w || !h) throw new Error('Empty image');
+
+        const keepAsIs = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(file.type);
+        if (keepAsIs && original.length <= IMAGE_TARGET_CHARS && Math.max(w, h) <= IMAGE_MAX_DIMENSION) {
+            return original;
+        }
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        let scale = Math.min(1, IMAGE_MAX_DIMENSION / Math.max(w, h));
+        let quality = 0.85;
+        let result = null;
+        for (let attempt = 0; attempt < 8; attempt++) {
+            canvas.width = Math.max(1, Math.round(w * scale));
+            canvas.height = Math.max(1, Math.round(h * scale));
+            ctx.fillStyle = '#ffffff'; // JPEG has no transparency, so fill with white first
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            result = canvas.toDataURL('image/jpeg', quality);
+            if (result.length <= IMAGE_TARGET_CHARS) break;
+            if (quality > 0.65) quality -= 0.1; else scale *= 0.75;
+        }
+        return result;
+    }
+
+    function setPendingImage(dataUrl) {
+        pendingImage = dataUrl;
+        imagePreview.src = dataUrl;
+        imagePreviewMeta.innerText = `Image ready · ${Math.max(1, Math.round(dataUrl.length * 0.75 / 1024))} KB`;
+        imagePreviewBar.classList.remove('hidden');
+        chatView.classList.add('has-pending-image');
+        msgInput.placeholder = 'Add a caption (optional)...';
+        msgInput.focus();
+    }
+
+    function clearPendingImage() {
+        pendingImage = null;
+        imagePreviewBar.classList.add('hidden');
+        chatView.classList.remove('has-pending-image');
+        imagePreview.removeAttribute('src');
+        msgInput.placeholder = 'Message...';
+    }
+
+    async function handleImageFile(file) {
+        const jobId = ++imageJobId;
+        msgInput.placeholder = 'Preparing image...';
+        try {
+            const dataUrl = await prepareImageForSending(file);
+            if (jobId !== imageJobId) return; // A newer paste replaced this one
+            setPendingImage(dataUrl);
+        } catch (err) {
+            console.warn('Could not process pasted image:', err);
+            if (jobId === imageJobId) {
+                msgInput.placeholder = pendingImage ? 'Add a caption (optional)...' : 'Message...';
+                addSystemMessage('⚠️ That image could not be read.');
+            }
+        }
+    }
+
+    function getPastedImageFile(clipboardData) {
+        if (!clipboardData) return null;
+        const items = clipboardData.items || [];
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].kind === 'file' && items[i].type.indexOf('image/') === 0) {
+                const file = items[i].getAsFile();
+                if (file) return file;
+            }
+        }
+        const files = clipboardData.files || [];
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].type.indexOf('image/') === 0) return files[i];
+        }
+        return null;
+    }
+
+    document.addEventListener('paste', (e) => {
+        // Only while inside a room, and never when typing a nickname
+        if (!currentRoomId || chatView.classList.contains('hidden') || e.target === nickInput) return;
+        const file = getPastedImageFile(e.clipboardData);
+        if (!file) return; // Plain text: let the browser paste it normally
+        e.preventDefault();
+        handleImageFile(file);
+    });
+
+    cancelImageBtn.addEventListener('click', () => {
+        clearPendingImage();
+        msgInput.focus();
+    });
+
+    // Lightbox: click an image in the chat to see it full size, click anywhere or press Esc to close
+    function openLightbox(src) {
+        lightboxImg.src = src;
+        lightbox.classList.remove('hidden');
+    }
+
+    function closeLightbox() {
+        lightbox.classList.add('hidden');
+        lightboxImg.removeAttribute('src');
+    }
+
+    lightbox.addEventListener('click', closeLightbox);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        if (!lightbox.classList.contains('hidden')) closeLightbox();
+        else if (pendingImage) clearPendingImage();
+    });
+
+    // Images don't have a height until they finish decoding, so scroll to the bottom again once they load
+    function stickToBottomOnImageLoad(root) {
+        root.querySelectorAll('img.msg-image').forEach((img) => {
+            if (img.complete) return;
+            img.addEventListener('load', () => { messagesDiv.scrollTop = messagesDiv.scrollHeight; }, { once: true });
+        });
+    }
+
+    // Builds the history payload for someone who just joined without exceeding the server's buffer limit.
+    // The newest images are included first; once the budget is used up, older messages keep their text
+    // but their image is replaced with a placeholder.
+    function buildHistoryForSync() {
+        const out = [];
+        let used = 0;
+        let imagesAllowed = true;
+        for (let i = messageHistory.length - 1; i >= 0; i--) {
+            const m = messageHistory[i];
+            const textCost = (m.message ? m.message.length : 0) + 64;
+            const imageCost = m.image ? m.image.length : 0;
+            if (used + textCost > HISTORY_SYNC_BUDGET) break; // Even the text no longer fits
+            if (m.image && (!imagesAllowed || used + textCost + imageCost > HISTORY_SYNC_BUDGET)) {
+                imagesAllowed = false;
+                used += textCost;
+                out.push({ nick: m.nick, message: m.message, image: null, imageOmitted: true });
+            } else {
+                used += textCost + imageCost;
+                out.push(m);
+            }
+        }
+        return out.reverse();
     }
 
     // Connection Restoration Setup
@@ -1287,9 +1636,10 @@ window.addEventListener('click', clearUnreadNotifications);
             unreadCount++;
             document.title = `(${unreadCount}) JoshChat`;
         }
+            const image = isSafeImage(data.image) ? data.image : null;
             // Commit to local client history
-            messageHistory.push({ nick: data.nick, message: data.message });
-            addMessage(data.nick, data.message, data.nick === myNick);
+            messageHistory.push({ nick: data.nick, message: data.message, image });
+            addMessage(data.nick, data.message, data.nick === myNick, image);
         }
     });
 
@@ -1298,7 +1648,7 @@ window.addEventListener('click', clearUnreadNotifications);
         // Master peer packages their message history and returns it
         socket.emit('send_history', {
             requesterId: data.requesterId,
-            history: messageHistory
+            history: buildHistoryForSync()
         });
     });
 
@@ -1311,16 +1661,11 @@ window.addEventListener('click', clearUnreadNotifications);
         // Render history by safely prepending to prevent duplicate rendering of live streams
         const fragment = document.createDocumentFragment();
         historicalMessages.forEach(msg => {
-            const div = document.createElement('div');
-            div.className = 'message' + (msg.nick === myNick ? ' own' : '');
-            
-            const safeText = escapeHtml(msg.message);
-            const linkedText = linkify(safeText);
-            
-            div.innerHTML = `<span class="msg-name">${escapeHtml(msg.nick === myNick ? 'You' : msg.nick)}</span><div>${linkedText}</div>`;
-            fragment.appendChild(div);
+            const image = isSafeImage(msg.image) ? msg.image : null;
+            fragment.appendChild(buildMessageElement(msg.nick, msg.message, msg.nick === myNick, image, !!msg.imageOmitted));
         });
         
+        stickToBottomOnImageLoad(fragment);
         messagesDiv.insertBefore(fragment, messagesDiv.firstChild);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
