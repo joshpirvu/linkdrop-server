@@ -6,7 +6,10 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors: { origin: "*" }
+    cors: { origin: "*" },
+    // Socket.io's default is 1 MB per packet, which would disconnect anyone sending an image.
+    // Pasted images are compressed to ~375 KB in the browser; the extra headroom is for history sync payloads.
+    maxHttpBufferSize: 10 * 1024 * 1024
 });
 
 const rooms = new Map();          // roomId -> Set(socketIds)
@@ -15,6 +18,10 @@ const roomTimeouts = new Map();   // roomId -> timeoutId (for delayed deletion)
 
 // Set room survival to 24 hours
 const ROOM_TIMEOUT_MS = 24 * 60 * 60 * 1000; 
+
+// Image messages: only base64 data URLs of these types are relayed, and never above this size
+const MAX_IMAGE_CHARS = 1.5 * 1024 * 1024;   // Well above what the browser sends after compression
+const IMAGE_DATA_URL_PATTERN = /^data:image\/(png|jpeg|gif|webp);base64,[A-Za-z0-9+\/]+=*$/;
 
 function generateRoomId() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -87,18 +94,19 @@ io.on('connection', (socket) => {
         console.log(`${socket.id} joined ${roomId}. Members: ${rooms.get(roomId).size}`);
     });
 
-    socket.on('chat_message', ({ roomId, message }) => {
+    socket.on('chat_message', ({ roomId, message, image }) => {
         if (!roomId || !rooms.has(roomId)) {
             // Tell the frontend that the room expired so it can recover gracefully
             return socket.emit('room_error', { error: 'Room does not exist or has expired.' });
         }
         const nick = userNicks.get(socket.id) || 'Anonymous';
-        io.to(roomId).emit('new_message', {
-            roomId,
-            nick,
-            message: message.substring(0, 3000),
-            timestamp: Date.now()
-        });
+        const text = typeof message === 'string' ? message.substring(0, 3000) : '';
+        const hasImage = typeof image === 'string' && image.length <= MAX_IMAGE_CHARS && IMAGE_DATA_URL_PATTERN.test(image);
+        if (!text && !hasImage) return; // Nothing to send
+
+        const payload = { roomId, nick, message: text, timestamp: Date.now() };
+        if (hasImage) payload.image = image;
+        io.to(roomId).emit('new_message', payload);
     });
 
     // P2P History Sync Signalling:
