@@ -96,7 +96,7 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('new_message', {
             roomId,
             nick,
-            message: message.substring(0, 500),
+            message: message.substring(0, 3000),
             timestamp: Date.now()
         });
     });
