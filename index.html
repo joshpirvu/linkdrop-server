@@ -1205,6 +1205,7 @@ scrollBottomBtn.addEventListener('click', () => {
     if (isOwn || (isTabFocused && (wasAtBottom || !isScrollable))) {
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
         stickToBottomOnImageLoad(div);
+        scrollBottomBtn.classList.remove('visible'); // We're at the bottom now, even if no scroll event fires
         clearUnreadDividers(); // Wipes inline lines and badge counters
     } else {
         // Increment unread count only if we are scrolled up OR the tab is unfocused (even if not scrollable)
@@ -1251,7 +1252,13 @@ scrollBottomBtn.addEventListener('click', () => {
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
-    function clearMessages() { messagesDiv.innerHTML = ''; }
+    function clearMessages() {
+        messagesDiv.innerHTML = '';
+        // Nothing left to scroll to: hide the scroll-to-bottom button and reset the unread state,
+        // otherwise they carry over from the previous room
+        scrollBottomBtn.classList.remove('visible');
+        clearUnreadDividers();
+    }
 
     function showHome() {
         homeView.classList.remove('hidden');
