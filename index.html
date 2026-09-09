@@ -2,8 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover, interactive-widget=resizes-content">
     <title>JoshChat</title>
+
+    <!-- Browser chrome color, kept in sync with the theme by setTheme() -->
+    <meta name="theme-color" id="themeColorMeta" content="#07111c">
+
+    <!-- Home screen installation -->
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     
     <!-- QR Code library -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
@@ -111,8 +118,8 @@ body:not(.dark) .unread-divider .unread-pill {
 /* 2. Sleek Floating Scroll-To-Bottom Button (FAB) in the Bottom Right */
 .scroll-bottom-btn {
     position: absolute;
-    bottom: 135px; /* Positioned nicely above the chat input bar */
-    right: 1.5rem;
+    bottom: 12px; /* Floats inside the bottom-right corner of the messages area (.messages-wrap) */
+    right: 12px;
     width: 42px;
     height: 42px;
     background: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
@@ -137,9 +144,11 @@ body:not(.dark) .scroll-bottom-btn {
     background: rgba(0, 0, 0, 0.75);
 }
 
-.scroll-bottom-btn:hover {
-    background: rgba(0, 0, 0, 0.85);
-    transform: scale(1.05);
+@media (hover: hover) {
+    .scroll-bottom-btn:hover {
+        background: rgba(0, 0, 0, 0.85);
+        transform: scale(1.05);
+    }
 }
 
 .scroll-bottom-btn.visible {
@@ -364,8 +373,10 @@ body:not(.dark) .scroll-bottom-btn {
             gap: 8px;
         }
         
-        .btn:hover {
-            background: var(--btn-outline-hover-bg);
+        @media (hover: hover) {
+            .btn:hover {
+                background: var(--btn-outline-hover-bg);
+            }
         }
 
         .btn-primary {
@@ -374,8 +385,10 @@ body:not(.dark) .scroll-bottom-btn {
             border: none;
         }
         
-        .btn-primary:hover {
-            background: var(--btn-primary-hover);
+        @media (hover: hover) {
+            .btn-primary:hover {
+                background: var(--btn-primary-hover);
+            }
         }
 
         .btn-primary:active {
@@ -491,8 +504,10 @@ body:not(.dark) .scroll-bottom-btn {
             transition: all 0.2s;
         }
         
-        .copy-btn:hover {
-            background: var(--card-border);
+        @media (hover: hover) {
+            .copy-btn:hover {
+                background: var(--card-border);
+            }
         }
 
         .qr-container {
@@ -531,12 +546,14 @@ body:not(.dark) .scroll-bottom-btn {
     transition: background-color 0.2s;
 }
 
-.qr-label:hover {
-    background: var(--btn-outline-hover-bg);
-}
+@media (hover: hover) {
+    .qr-label:hover {
+        background: var(--btn-outline-hover-bg);
+    }
 
-body.dark .qr-label:hover {
-    background: var(--btn-outline-hover-bg);
+    body.dark .qr-label:hover {
+        background: var(--btn-outline-hover-bg);
+    }
 }
 
         /* NEW ACTIONS ROW - Holds Member count and Nick section together */
@@ -597,6 +614,11 @@ body.dark .qr-label:hover {
             flex-shrink: 0;
         }
 
+        .messages-wrap {
+            position: relative; /* Anchors the floating scroll-to-bottom button to the messages area */
+            margin: 1rem 0;
+        }
+
         .messages-area {
             background: var(--card-bg);
             border-radius: 12px;
@@ -604,7 +626,7 @@ body.dark .qr-label:hover {
             height: 50vh;
             overflow-y: auto;
             padding: 1rem;
-            margin: 1rem 0;
+            margin: 0;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -647,8 +669,10 @@ body.dark .qr-label:hover {
             word-break: break-all;
         }
 
-        .chat-link:hover {
-            opacity: 0.8;
+        @media (hover: hover) {
+            .chat-link:hover {
+                opacity: 0.8;
+            }
         }
 
         .chat-input-area {
@@ -703,8 +727,10 @@ body.dark .qr-label:hover {
             gap: 8px;
         }
 
-        .leave-btn:hover {
-            opacity: 0.9;
+        @media (hover: hover) {
+            .leave-btn:hover {
+                opacity: 0.9;
+            }
         }
 
         .system-message {
@@ -811,13 +837,10 @@ body.dark .qr-label:hover {
             transition: opacity 0.2s;
         }
 
-        .image-preview-bar button:hover {
-            opacity: 0.85;
-        }
-
-        /* Lift the scroll-to-bottom button above the preview bar while it is showing */
-        #chatView.has-pending-image .scroll-bottom-btn {
-            bottom: 217px;
+        @media (hover: hover) {
+            .image-preview-bar button:hover {
+                opacity: 0.85;
+            }
         }
 
         /* Full-size view when an image in the chat is clicked */
@@ -844,6 +867,74 @@ body.dark .qr-label:hover {
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
         }
 
+        /* Share / QR row in the room header (phones only: enabled in the phone media query below) */
+        .share-row {
+            display: none;
+            gap: 8px;
+        }
+
+        .share-row button {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 44px;
+            background: var(--nick-section-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: var(--btn-outline-text);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .share-row button:active {
+            background: var(--btn-outline-hover-bg);
+        }
+
+        /* Right side of the top bar: leave icon (phones, in a room) + theme switch */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-leave-btn {
+            display: none; /* Phones only, while in a room */
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: var(--header-text);
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        /* Image attach button: shown on touch devices, where pasting an image is awkward.
+           The selector needs two classes to out-rank the generic .chat-input-area button rule. */
+        .chat-input-area .attach-btn {
+            display: none;
+            width: 48px;
+            padding: 0;
+            align-items: center;
+            justify-content: center;
+            background: var(--card-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            color: var(--btn-outline-text);
+            font-size: 20px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        @media (pointer: coarse) {
+            .chat-input-area .attach-btn { display: flex; }
+        }
+
         .hidden { display: none !important; }
 
         footer {
@@ -855,8 +946,98 @@ body.dark .qr-label:hover {
             font-weight: 500;
         }
 
-        @media (max-width: 480px) {
-            .main-content { padding: 1rem; }
+        /* ================= Phone layout ================= */
+        /* Only viewports up to 600px wide (phones in portrait) get the full-screen app shell.
+           Tablets and desktops keep the centered card layout above. */
+        @media (max-width: 600px) {
+            body {
+                padding: 0;
+                min-height: 100vh;
+                min-height: 100dvh;
+            }
+
+            .app-container {
+                max-width: none;
+                height: 100vh;  /* Fallback for older browsers */
+                height: 100dvh; /* Tracks the browser's collapsing toolbars; syncAppHeight() refines this while the keyboard is open */
+                border-radius: 0;
+                border: none;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .header {
+                flex-shrink: 0;
+                padding: 0.9rem 1rem;
+                padding-top: calc(0.9rem + env(safe-area-inset-top, 0px)); /* Status bar when installed to the home screen */
+            }
+
+            .main-content {
+                flex: 1;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
+                padding: 0.75rem;
+                overflow-y: auto;
+            }
+
+            footer {
+                padding-bottom: calc(1.2rem + env(safe-area-inset-bottom, 0px)); /* iPhone home indicator */
+            }
+
+            /* In a room: header at the top, input at the bottom, only the messages scroll */
+            body.in-chat .main-content {
+                overflow: hidden;
+                padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+            }
+
+            body.in-chat footer { display: none; }
+
+            #chatView {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                min-height: 0;
+            }
+
+            .room-header {
+                flex-shrink: 0;
+                padding: 0.75rem;
+                gap: 8px;
+            }
+
+            .messages-wrap {
+                flex: 1;
+                min-height: 0;
+                margin: 0.6rem 0;
+            }
+
+            .messages-area {
+                height: 100%; /* Fills whatever is left between the room header and the input */
+            }
+
+            .image-preview-bar,
+            .chat-input-area {
+                flex-shrink: 0;
+            }
+
+            /* Compact room header: share/QR buttons instead of an always-open QR code */
+            .share-row { display: flex; }
+            .qr-wrapper { display: none; margin: 0; }
+            .qr-wrapper.qr-open { display: flex; }
+
+            /* Leave lives in the top bar as an icon; the big bottom button is hidden */
+            body.in-chat .header-leave-btn { display: flex; }
+            #chatView .leave-btn { display: none; }
+
+            /* iOS Safari zooms into inputs with a font size under 16px and stays zoomed */
+            .nick-section input { font-size: 16px; }
+
+            /* Comfortable touch targets */
+            .copy-btn { min-height: 44px; }
+            .nick-section button { min-height: 40px; padding: 0.4rem 1.2rem; }
+            .image-preview-bar button { width: 44px; height: 44px; }
+
             .btn, .join-row input, .chat-input-area input { font-size: 1rem; padding: 0.8rem; }
         }
     </style>
@@ -870,14 +1051,17 @@ body.dark .qr-label:hover {
     <div class="header">
         <h1><i class="ph ph-broadcast"></i> JoshChat</h1>
         
-        <label class="theme-switch" for="themeToggle">
-            <input type="checkbox" id="themeToggle" />
-            <div class="slider">
-                <i class="ph ph-sun"></i>
-                <i class="ph ph-moon"></i>
-                <div class="knob"></div>
-            </div>
-        </label>
+        <div class="header-actions">
+            <button id="headerLeaveBtn" class="header-leave-btn" type="button" title="Leave room" aria-label="Leave room"><i class="ph ph-sign-out"></i></button>
+            <label class="theme-switch" for="themeToggle">
+                <input type="checkbox" id="themeToggle" />
+                <div class="slider">
+                    <i class="ph ph-sun"></i>
+                    <i class="ph ph-moon"></i>
+                    <div class="knob"></div>
+                </div>
+            </label>
+        </div>
     </div>
 
     <div class="main-content">
@@ -891,7 +1075,7 @@ body.dark .qr-label:hover {
                 <div class="join-area">
                     <label>Join a room</label>
                     <div class="join-row">
-                        <input type="text" id="joinRoomIdInput" placeholder="Room Code" autocomplete="off">
+                        <input type="text" id="joinRoomIdInput" placeholder="Room Code" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="go">
                         <button class="btn" id="joinRoomBtn">
                             <span id="joinBtnText">Join</span>
                             <span id="joinBtnSpinner" class="spinner" style="display: none;"></span>
@@ -910,7 +1094,12 @@ body.dark .qr-label:hover {
                     <button class="copy-btn" id="copyRoomIdBtn"><i class="ph ph-copy"></i> Copy</button>
                 </div>
                 
-                <div class="qr-wrapper">
+                <div class="share-row">
+                    <button id="shareLinkBtn" type="button"><i class="ph ph-share-network"></i> <span id="shareLinkText">Share link</span></button>
+                    <button id="toggleQrBtn" type="button"><i class="ph ph-qr-code"></i> <span id="toggleQrText">QR code</span></button>
+                </div>
+
+                <div class="qr-wrapper" id="qrWrapper">
                     <div class="qr-container" id="qrContainer"></div>
                     <div class="qr-label" id="qrLabel">
                         <i class="ph ph-arrow-up"></i> Click to copy room link
@@ -930,13 +1119,15 @@ body.dark .qr-label:hover {
                 </div>
             </div>
             
-            <div class="messages-area" id="messagesContainer">
-                <!-- Messages will appear here -->
+            <div class="messages-wrap">
+                <div class="messages-area" id="messagesContainer">
+                    <!-- Messages will appear here -->
+                </div>
+                <button id="scrollToBottomBtn" class="scroll-bottom-btn" title="Scroll to bottom">
+                    <i class="ph ph-caret-down"></i>
+                    <span id="scrollBadge" class="badge hidden">0</span>
+                </button>
             </div>
-            <button id="scrollToBottomBtn" class="scroll-bottom-btn" title="Scroll to bottom">
-                <i class="ph ph-caret-down"></i>
-                <span id="scrollBadge" class="badge hidden">0</span>
-            </button>
             <!-- Pasted image waiting to be sent -->
             <div id="imagePreviewBar" class="image-preview-bar hidden">
                 <img id="imagePreview" alt="Image preview">
@@ -947,9 +1138,11 @@ body.dark .qr-label:hover {
                 <button id="cancelImageBtn" type="button" title="Remove image"><i class="ph ph-x"></i></button>
             </div>
             <div class="chat-input-area">
-                <input type="text" id="messageInput" placeholder="Message..." autocomplete="off">
+                <button id="attachImageBtn" class="attach-btn" type="button" title="Send an image" aria-label="Send an image"><i class="ph ph-image"></i></button>
+                <input type="text" id="messageInput" placeholder="Message..." autocomplete="off" enterkeyhint="send">
                 <button id="sendMsgBtn">Send</button>
             </div>
+            <input type="file" id="imageFileInput" accept="image/*" class="hidden">
             
             <button class="leave-btn" id="leaveRoomBtn"><i class="ph ph-sign-out"></i> Leave Room</button>
         </div>
@@ -967,16 +1160,19 @@ body.dark .qr-label:hover {
     let unreadChatCount = 0;
     // Theme dark/light logic
     const themeToggleInput = document.getElementById('themeToggle');
+    const themeColorMeta = document.getElementById('themeColorMeta');
 
     function setTheme(theme) {
         if (theme === 'dark') {
             document.body.classList.add('dark');
             localStorage.setItem('linkdrop-theme', 'dark');
             themeToggleInput.checked = true;
+            themeColorMeta.setAttribute('content', '#07111c');
         } else {
             document.body.classList.remove('dark');
             localStorage.setItem('linkdrop-theme', 'light');
             themeToggleInput.checked = false;
+            themeColorMeta.setAttribute('content', '#0a2b3e');
         }
     }
 
@@ -1035,6 +1231,16 @@ body.dark .qr-label:hover {
     const cancelImageBtn = document.getElementById('cancelImageBtn');
     const lightbox = document.getElementById('imageLightbox');
     const lightboxImg = document.getElementById('lightboxImg');
+    // Mobile / phone-layout elements
+    const appContainer = document.querySelector('.app-container');
+    const headerLeaveBtn = document.getElementById('headerLeaveBtn');
+    const qrWrapper = document.getElementById('qrWrapper');
+    const shareLinkBtn = document.getElementById('shareLinkBtn');
+    const shareLinkText = document.getElementById('shareLinkText');
+    const toggleQrBtn = document.getElementById('toggleQrBtn');
+    const toggleQrText = document.getElementById('toggleQrText');
+    const attachImageBtn = document.getElementById('attachImageBtn');
+    const imageFileInput = document.getElementById('imageFileInput');
 
     // Handle create room loading state
     let createRoomTimeout = null;
@@ -1261,6 +1467,7 @@ scrollBottomBtn.addEventListener('click', () => {
     }
 
     function showHome() {
+        document.body.classList.remove('in-chat');
         homeView.classList.remove('hidden');
         chatView.classList.add('hidden');
         if (currentRoomId) socket.emit('leave_room', { roomId: currentRoomId });
@@ -1275,8 +1482,11 @@ scrollBottomBtn.addEventListener('click', () => {
     }
 
     function showChat(roomId) {
+        document.body.classList.add('in-chat');
         homeView.classList.add('hidden');
         chatView.classList.remove('hidden');
+        qrWrapper.classList.remove('qr-open'); // On phones the QR starts collapsed
+        toggleQrText.innerText = 'QR code';
         currentRoomId = roomId;
         roomIdSpan.innerText = roomId;
         memberCountDisplay.innerText = "...";
@@ -1439,7 +1649,6 @@ if (qrLabel) {
         imagePreview.src = dataUrl;
         imagePreviewMeta.innerText = `Image ready · ${Math.max(1, Math.round(dataUrl.length * 0.75 / 1024))} KB`;
         imagePreviewBar.classList.remove('hidden');
-        chatView.classList.add('has-pending-image');
         msgInput.placeholder = 'Add a caption (optional)...';
         msgInput.focus();
     }
@@ -1447,7 +1656,6 @@ if (qrLabel) {
     function clearPendingImage() {
         pendingImage = null;
         imagePreviewBar.classList.add('hidden');
-        chatView.classList.remove('has-pending-image');
         imagePreview.removeAttribute('src');
         msgInput.placeholder = 'Message...';
     }
@@ -1548,6 +1756,71 @@ if (qrLabel) {
         }
         return out.reverse();
     }
+
+    // ===== Phone layout (viewports up to 600px wide) =====
+    const phoneLayout = window.matchMedia('(max-width: 600px)');
+
+    // Keeps the app exactly as tall as the visible area so the input row stays above the
+    // on-screen keyboard. iOS Safari does not resize the layout when the keyboard opens,
+    // it only shrinks the "visual viewport", so the height has to be applied manually.
+    function syncAppHeight() {
+        if (!phoneLayout.matches || !window.visualViewport) {
+            appContainer.style.height = ''; // Tablets/desktop: back to the CSS-defined size
+            return;
+        }
+        const wasAtBottom = (messagesDiv.scrollHeight - messagesDiv.clientHeight - messagesDiv.scrollTop) < 40;
+        appContainer.style.height = Math.round(window.visualViewport.height) + 'px';
+        window.scrollTo(0, 0);
+        // Stay glued to the newest messages if we were already reading them
+        if (currentRoomId && wasAtBottom) messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', syncAppHeight);
+        window.visualViewport.addEventListener('scroll', syncAppHeight);
+    }
+    if (typeof phoneLayout.addEventListener === 'function') {
+        phoneLayout.addEventListener('change', syncAppHeight);
+    } else if (typeof phoneLayout.addListener === 'function') {
+        phoneLayout.addListener(syncAppHeight); // Older Safari fallback
+    }
+    syncAppHeight();
+
+    headerLeaveBtn.addEventListener('click', showHome);
+
+    toggleQrBtn.addEventListener('click', () => {
+        const open = qrWrapper.classList.toggle('qr-open');
+        toggleQrText.innerText = open ? 'Hide QR' : 'QR code';
+    });
+
+    let shareResetTimeout = null;
+    shareLinkBtn.addEventListener('click', async () => {
+        if (!currentRoomId) return;
+        const link = `${window.location.origin}?room=${currentRoomId}`;
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: 'JoshChat', text: `Join my JoshChat room (ID: ${currentRoomId})`, url: link });
+            } catch (err) {
+                // Share sheet closed without sharing: nothing to do
+            }
+        } else {
+            // No native share sheet on this device/browser: copy the link instead
+            navigator.clipboard.writeText(link).then(() => {
+                shareLinkText.innerText = 'Copied!';
+                if (shareResetTimeout) clearTimeout(shareResetTimeout);
+                shareResetTimeout = setTimeout(() => { shareLinkText.innerText = 'Share link'; }, 1500);
+            });
+        }
+    });
+
+    // Attach button: the reliable way to send images on touch devices, where pasting
+    // an image is awkward. Reuses the exact same pipeline as clipboard paste.
+    attachImageBtn.addEventListener('click', () => imageFileInput.click());
+    imageFileInput.addEventListener('change', () => {
+        const file = imageFileInput.files && imageFileInput.files[0];
+        if (file) handleImageFile(file);
+        imageFileInput.value = ''; // Allows choosing the same file twice in a row
+    });
 
     // Connection Restoration Setup
     socket.on('connect', () => {
@@ -1734,10 +2007,10 @@ socket.on('join_result', (data) => {
     });
     
     sendBtn.addEventListener('click', sendMessage);
-    msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) sendMessage(); }); // keydown: mobile keyboards don't reliably fire keypress
     leaveBtn.addEventListener('click', showHome);
-    joinInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
+    joinInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.isComposing) {
         joinBtn.click();
         }
     });
@@ -1754,7 +2027,7 @@ socket.on('join_result', (data) => {
     });
     
     updateNickBtn.addEventListener('click', () => updateNickname(nickInput.value));
-    nickInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') updateNickname(nickInput.value); });
+    nickInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) updateNickname(nickInput.value); });
 
     const urlParams = new URLSearchParams(window.location.search);
     const roomFromUrl = urlParams.get('room');
