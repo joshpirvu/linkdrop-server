@@ -473,6 +473,59 @@ body:not(.dark) .scroll-bottom-btn {
             border: 1px solid var(--card-border);
         }
 
+        /* Slim room bar + collapsible panel. The bar only exists on phones;
+           on larger screens the panel is always open and the bar stays hidden. */
+        .room-bar {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            min-height: 48px;
+            padding: 0.6rem 0.9rem;
+            background: none;
+            border: none;
+            color: var(--btn-outline-text);
+            font-family: inherit;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .room-bar:active {
+            opacity: 0.7;
+        }
+
+        .room-bar-id {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .room-bar-members {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .room-bar-chevron {
+            font-size: 16px;
+            color: var(--footer-text);
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .room-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
         .room-id-box {
             background: var(--room-id-box-bg);
             padding: 0.8rem 1rem;
@@ -1002,9 +1055,30 @@ body:not(.dark) .scroll-bottom-btn {
 
             .room-header {
                 flex-shrink: 0;
-                padding: 0.75rem;
-                gap: 8px;
+                padding: 0;
+                gap: 0;
+                margin-bottom: 0;
             }
+
+            .room-bar { display: flex; }
+
+            .room-panel {
+                display: none;
+                gap: 8px;
+                padding: 0 0.75rem 0.75rem;
+            }
+
+            .room-header.panel-open .room-panel {
+                display: flex;
+                animation: fadeIn 0.2s ease-out;
+            }
+
+            .room-header.panel-open .room-bar-chevron {
+                transform: rotate(180deg);
+            }
+
+            /* The bar already shows the member count, so drop it from the panel */
+            .member-count-box { display: none; }
 
             .messages-wrap {
                 flex: 1;
@@ -1088,33 +1162,42 @@ body:not(.dark) .scroll-bottom-btn {
 
         <!-- Chat View -->
         <div id="chatView" class="hidden">
-            <div class="room-header">
-                <div class="room-id-box">
-                    <span>ID: <strong id="roomIdDisplay">---</strong></span>
-                    <button class="copy-btn" id="copyRoomIdBtn"><i class="ph ph-copy"></i> Copy</button>
-                </div>
-                
-                <div class="share-row">
-                    <button id="shareLinkBtn" type="button"><i class="ph ph-share-network"></i> <span id="shareLinkText">Share link</span></button>
-                    <button id="toggleQrBtn" type="button"><i class="ph ph-qr-code"></i> <span id="toggleQrText">QR code</span></button>
-                </div>
+            <div class="room-header" id="roomHeader">
+                <!-- Slim bar (phones): the whole room card collapses behind this -->
+                <button class="room-bar" id="roomBar" type="button" aria-expanded="false" aria-controls="roomPanel">
+                    <span class="room-bar-id">ID: <strong id="roomIdBarDisplay">---</strong></span>
+                    <span class="room-bar-members" title="Users in room"><i class="ph ph-users"></i> <span id="memberCountBarDisplay">1</span></span>
+                    <i class="ph ph-caret-down room-bar-chevron"></i>
+                </button>
 
-                <div class="qr-wrapper" id="qrWrapper">
-                    <div class="qr-container" id="qrContainer"></div>
-                    <div class="qr-label" id="qrLabel">
-                        <i class="ph ph-arrow-up"></i> Click to copy room link
+                <div class="room-panel" id="roomPanel">
+                    <div class="room-id-box">
+                        <span>ID: <strong id="roomIdDisplay">---</strong></span>
+                        <button class="copy-btn" id="copyRoomIdBtn"><i class="ph ph-copy"></i> Copy</button>
                     </div>
-                </div>
-                
-                <!-- NEW: Member count & Nick section combined -->
-                <div class="room-actions-row">
-                    <div class="member-count-box" title="Users in room">
-                        <i class="ph ph-users"></i>
-                        <span id="memberCountDisplay">1</span>
+
+                    <div class="share-row">
+                        <button id="shareLinkBtn" type="button"><i class="ph ph-share-network"></i> <span id="shareLinkText">Share link</span></button>
+                        <button id="toggleQrBtn" type="button"><i class="ph ph-qr-code"></i> <span id="toggleQrText">QR code</span></button>
                     </div>
-                    <div class="nick-section">
-                        <input type="text" id="nicknameInput" placeholder="Name" maxlength="20">
-                        <button id="updateNickBtn">Set</button>
+
+                    <div class="qr-wrapper" id="qrWrapper">
+                        <div class="qr-container" id="qrContainer"></div>
+                        <div class="qr-label" id="qrLabel">
+                            <i class="ph ph-arrow-up"></i> Click to copy room link
+                        </div>
+                    </div>
+
+                    <!-- Member count & Nick section combined -->
+                    <div class="room-actions-row">
+                        <div class="member-count-box" title="Users in room">
+                            <i class="ph ph-users"></i>
+                            <span id="memberCountDisplay">1</span>
+                        </div>
+                        <div class="nick-section">
+                            <input type="text" id="nicknameInput" placeholder="Name" maxlength="20">
+                            <button id="updateNickBtn">Set</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1241,6 +1324,10 @@ body:not(.dark) .scroll-bottom-btn {
     const toggleQrText = document.getElementById('toggleQrText');
     const attachImageBtn = document.getElementById('attachImageBtn');
     const imageFileInput = document.getElementById('imageFileInput');
+    const roomHeader = document.getElementById('roomHeader');
+    const roomBar = document.getElementById('roomBar');
+    const roomIdBarDisplay = document.getElementById('roomIdBarDisplay');
+    const memberCountBarDisplay = document.getElementById('memberCountBarDisplay');
 
     // Handle create room loading state
     let createRoomTimeout = null;
@@ -1481,19 +1568,23 @@ scrollBottomBtn.addEventListener('click', () => {
         setJoinRoomLoading(false);
     }
 
-    function showChat(roomId) {
+    function showChat(roomId, isCreator = false) {
         document.body.classList.add('in-chat');
         homeView.classList.add('hidden');
         chatView.classList.remove('hidden');
         qrWrapper.classList.remove('qr-open'); // On phones the QR starts collapsed
         toggleQrText.innerText = 'QR code';
+        // Creators get the share tools front and center; joiners get the chat (phones only)
+        setRoomPanelOpen(isCreator);
         currentRoomId = roomId;
         roomIdSpan.innerText = roomId;
+        roomIdBarDisplay.innerText = roomId;
         memberCountDisplay.innerText = "...";
+        memberCountBarDisplay.innerText = "...";
         clearMessages();
         clearPendingImage();
         addSystemMessage(`Joined room.`);
-        msgInput.focus();
+        if (!phoneLayout.matches) msgInput.focus(); // On phones, don't pop the keyboard on room entry
         
         // P2P History Sync Call
         socket.emit('request_history', { roomId });
@@ -1822,6 +1913,23 @@ if (qrLabel) {
         imageFileInput.value = ''; // Allows choosing the same file twice in a row
     });
 
+    // Collapsible room card (phones): the slim bar toggles the full panel.
+    // On tablets/desktop the panel is always visible and this class has no effect.
+    function setRoomPanelOpen(open) {
+        roomHeader.classList.toggle('panel-open', open);
+        roomBar.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    roomBar.addEventListener('click', () => {
+        setRoomPanelOpen(!roomHeader.classList.contains('panel-open'));
+    });
+
+    // Starting to type means the person wants the chat: collapse the panel out of the way.
+    // One-way on purpose: re-expanding on blur would make the header flap when tapping Send.
+    msgInput.addEventListener('focus', () => {
+        if (phoneLayout.matches) setRoomPanelOpen(false);
+    });
+
     // Connection Restoration Setup
     socket.on('connect', () => {
         const sysMessages = document.querySelectorAll('.system-message.reconnecting');
@@ -1960,11 +2068,14 @@ window.addEventListener('click', clearUnreadNotifications);
         if (memberCountDisplay) {
             memberCountDisplay.innerText = data.count;
         }
+        if (memberCountBarDisplay) {
+            memberCountBarDisplay.innerText = data.count;
+        }
     });
     
     socket.on('room_created', (data) => {
         setCreateRoomLoading(false);
-        showChat(data.roomId);
+        showChat(data.roomId, true);
     });
     
 socket.on('join_result', (data) => {
