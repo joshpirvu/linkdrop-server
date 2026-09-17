@@ -16,8 +16,8 @@ const rooms = new Map();          // roomId -> Set(socketIds)
 const userNicks = new Map();      // socketId -> nick
 const roomTimeouts = new Map();   // roomId -> timeoutId (for delayed deletion)
 
-// Set room survival to 24 hours
-const ROOM_TIMEOUT_MS = 24 * 60 * 60 * 1000; 
+// Set room survival to 1 hour
+const ROOM_TIMEOUT_MS = 60 * 60 * 1000; 
 
 // Image messages: only base64 data URLs of these types are relayed, and never above this size
 const MAX_IMAGE_CHARS = 1.5 * 1024 * 1024;   // Well above what the browser sends after compression
@@ -189,6 +189,10 @@ io.on('connection', (socket) => {
     });
 });
 
+app.get('/healthz', (req, res) => {
+    res.status(200).send('OK');
+});
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -196,4 +200,15 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
+});
+
+// --- GLOBAL CRASH HANDLERS ---
+process.on('uncaughtException', (err) => {
+    console.error('CRITICAL ERROR (Uncaught Exception):', err);
+    // Prevents the server from shutting down completely
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('CRITICAL ERROR (Unhandled Rejection):', reason);
+    // Prevents the server from shutting down completely
 });
