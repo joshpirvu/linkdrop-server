@@ -1007,6 +1007,9 @@ body:not(.dark) .scroll-bottom-btn {
                 padding: 0;
                 min-height: 100vh;
                 min-height: 100dvh;
+                /* Pin the app to the top. While the keyboard is open on iOS the app is shorter than
+                   the page, and the desktop centering would push the input row behind the keyboard. */
+                align-items: flex-start;
             }
 
             .app-container {
@@ -1042,6 +1045,12 @@ body:not(.dark) .scroll-bottom-btn {
             body.in-chat .main-content {
                 overflow: hidden;
                 padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+            }
+
+            /* An open keyboard covers the home-indicator area, so its safe-area padding would only
+               leave a blank band above the keyboard */
+            body.keyboard-open.in-chat .main-content {
+                padding-bottom: 0.75rem;
             }
 
             body.in-chat footer { display: none; }
@@ -1851,17 +1860,37 @@ if (qrLabel) {
     // ===== Phone layout (viewports up to 600px wide) =====
     const phoneLayout = window.matchMedia('(max-width: 600px)');
 
-    // Keeps the app exactly as tall as the visible area so the input row stays above the
-    // on-screen keyboard. iOS Safari does not resize the layout when the keyboard opens,
-    // it only shrinks the "visual viewport", so the height has to be applied manually.
+    // Keeps the input row above the on-screen keyboard. Android resizes the page itself
+    // (interactive-widget=resizes-content), but iOS Safari leaves the page at full height and only
+    // shrinks the "visual viewport", so while the keyboard is up the app has to be shrunk by hand.
     function syncAppHeight() {
-        if (!phoneLayout.matches || !window.visualViewport) {
-            appContainer.style.height = ''; // Tablets/desktop: back to the CSS-defined size
+        const vv = window.visualViewport;
+        if (!phoneLayout.matches || !vv) {
+            appContainer.style.height = ''; // Tablets/desktop: the CSS-defined size
+            document.body.classList.remove('keyboard-open');
             return;
         }
         const wasAtBottom = (messagesDiv.scrollHeight - messagesDiv.clientHeight - messagesDiv.scrollTop) < 40;
-        appContainer.style.height = Math.round(window.visualViewport.height) + 'px';
-        window.scrollTo(0, 0);
+
+        // vv.height is measured in zoomed pixels; multiplying by the scale converts it to layout pixels
+        const visibleHeight = Math.round(vv.height * vv.scale);
+        // The height the browser still lays the page out with. On iOS it does not shrink for the keyboard
+        // (innerHeight and clientHeight disagree about Safari's toolbars, so take the larger one)
+        const layoutHeight = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0);
+        const hiddenHeight = layoutHeight - visibleHeight; // Keyboard height on iOS; about 0 everywhere else
+
+        if (hiddenHeight > 2) {
+            appContainer.style.height = visibleHeight + 'px'; // Shrink the app to the part the keyboard leaves visible
+        } else {
+            appContainer.style.height = ''; // Nothing covering the page: 100dvh from the CSS is right
+        }
+        const typing = !!document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName);
+        document.body.classList.toggle('keyboard-open', typing && hiddenHeight > 100);
+
+        // iOS also shifts the page to reveal the focused input. Once the app fits the visible area
+        // that shift only pushes the top bar out of view, so undo it (unless the page is pinch-zoomed)
+        if (vv.scale <= 1.01 && (vv.offsetTop > 0 || window.scrollY > 0)) window.scrollTo(0, 0);
+
         // Stay glued to the newest messages if we were already reading them
         if (currentRoomId && wasAtBottom) messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
@@ -1870,6 +1899,8 @@ if (qrLabel) {
         window.visualViewport.addEventListener('resize', syncAppHeight);
         window.visualViewport.addEventListener('scroll', syncAppHeight);
     }
+    window.addEventListener('resize', syncAppHeight);
+    window.addEventListener('pageshow', syncAppHeight); // Also covers returning to the tab via back/forward
     if (typeof phoneLayout.addEventListener === 'function') {
         phoneLayout.addEventListener('change', syncAppHeight);
     } else if (typeof phoneLayout.addListener === 'function') {
@@ -2118,6 +2149,9 @@ socket.on('join_result', (data) => {
     });
     
     sendBtn.addEventListener('click', sendMessage);
+    // On touch devices a tap on Send would blur the input (closing the keyboard) only for
+    // sendMessage() to focus it again: keep the focus where it is so the keyboard stays put
+    sendBtn.addEventListener('mousedown', (e) => e.preventDefault());
     msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) sendMessage(); }); // keydown: mobile keyboards don't reliably fire keypress
     leaveBtn.addEventListener('click', showHome);
     joinInput.addEventListener('keydown', (e) => {
