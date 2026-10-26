@@ -463,6 +463,7 @@ body:not(.dark) .scroll-bottom-btn {
         }
 
         .room-header {
+            position: relative; /* Anchors the member list popover */
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -712,6 +713,392 @@ body:not(.dark) .scroll-bottom-btn {
             color: var(--message-name);
             margin-bottom: 4px;
             display: block;
+        }
+
+        /* --- Message features: timestamps, date separators, replies, reactions, selection --- */
+        .message .msg-time {
+            display: block;
+            text-align: right;
+            font-size: 0.68rem;
+            line-height: 1;
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+
+        .message.selected {
+            box-shadow: 0 0 0 2px var(--message-name);
+        }
+
+        .message.flash {
+            animation: flashMsg 1.2s ease-out;
+        }
+
+        @keyframes flashMsg {
+            0% { box-shadow: 0 0 0 3px var(--message-name); }
+            100% { box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        }
+
+        .date-divider {
+            align-self: center;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: var(--system-message-text);
+            background: var(--system-message-bg);
+            border: 1px solid var(--card-border);
+            padding: 0.3rem 0.9rem;
+            border-radius: 2rem;
+        }
+
+        .msg-quote {
+            display: block;
+            border-left: 3px solid var(--message-name);
+            background: rgba(0, 0, 0, 0.07);
+            border-radius: 6px;
+            padding: 4px 8px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            max-width: 100%;
+        }
+
+        body.dark .msg-quote {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .msg-quote-nick {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--message-name);
+        }
+
+        .msg-quote-text {
+            display: block;
+            font-size: 0.85rem;
+            opacity: 0.85;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .msg-reactions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .reaction-chip {
+            font-family: inherit;
+            font-size: 0.8rem;
+            line-height: 1;
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            background: var(--card-bg);
+            color: var(--message-text);
+            cursor: pointer;
+        }
+
+        .reaction-chip.mine {
+            border-color: var(--message-name);
+            box-shadow: inset 0 0 0 1px var(--message-name);
+        }
+
+        .message.deleted .msg-deleted {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-style: italic;
+            font-size: 0.9rem;
+            opacity: 0.6;
+        }
+
+        /* Floating actions for the selected message */
+        .msg-toolbar {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            padding: 4px;
+            max-width: calc(100% - 24px);
+            background: var(--container-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            z-index: 110;
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        .msg-toolbar button {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 18px;
+            background: transparent;
+            color: var(--btn-outline-text);
+            font-family: inherit;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .msg-toolbar button.toolbar-emoji {
+            font-size: 20px;
+        }
+
+        .msg-toolbar button.active {
+            background: var(--btn-outline-hover-bg);
+            box-shadow: inset 0 0 0 1px var(--message-name);
+        }
+
+        .msg-toolbar button.confirm {
+            width: auto;
+            padding: 0 12px;
+            gap: 6px;
+            background: var(--error-bg);
+            color: var(--error-text);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        @media (hover: hover) {
+            .msg-toolbar button:hover {
+                background: var(--btn-outline-hover-bg);
+            }
+        }
+
+        /* Narrow phones: smaller buttons so all eight fit; if they still don't, the pill scrolls instead of clipping */
+        .msg-toolbar {
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .msg-toolbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        @media (max-width: 360px) {
+            .msg-toolbar { gap: 0; }
+            .msg-toolbar button { width: 32px; height: 32px; font-size: 16px; }
+            .msg-toolbar button.toolbar-emoji { font-size: 18px; }
+        }
+
+        .messages-wrap.has-selection .scroll-bottom-btn {
+            bottom: 64px; /* Keep clear of the toolbar */
+        }
+
+        /* "Replying to" strip above the input */
+        .reply-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 10px;
+            margin-bottom: 8px;
+            background: var(--join-area-bg);
+            border: 1px solid var(--card-border);
+            border-left: 3px solid var(--message-name);
+            border-radius: 12px;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .reply-bar-text {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .reply-bar-text strong {
+            font-size: 0.75rem;
+            color: var(--message-name);
+        }
+
+        .reply-bar-text span {
+            font-size: 0.85rem;
+            color: var(--btn-outline-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .reply-bar button {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: var(--leave-btn-bg);
+            color: var(--leave-btn-text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        /* "X is typing" pill in the corner of the messages area */
+        .typing-indicator {
+            position: absolute;
+            left: 12px;
+            bottom: 10px;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            max-width: calc(100% - 80px);
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: var(--system-message-bg);
+            border: 1px solid var(--card-border);
+            color: var(--system-message-text);
+            font-size: 0.75rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            z-index: 90;
+            pointer-events: none;
+        }
+
+        .typing-indicator.visible {
+            display: flex;
+        }
+
+        .typing-dots {
+            display: inline-flex;
+            gap: 3px;
+        }
+
+        .typing-dots i {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: typingDot 1.2s infinite ease-in-out;
+        }
+
+        .typing-dots i:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots i:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingDot {
+            0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+            30% { opacity: 1; transform: translateY(-3px); }
+        }
+
+        /* Member list behind the member count */
+        .member-count-box,
+        .room-bar-members {
+            cursor: pointer;
+        }
+
+        .member-popover {
+            position: absolute;
+            z-index: 200;
+            min-width: 170px;
+            max-width: 260px;
+            max-height: 240px;
+            overflow-y: auto;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            padding: 6px 0;
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        .member-popover-title {
+            padding: 6px 14px 8px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--footer-text);
+        }
+
+        .member-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 8px 14px;
+            font-size: 0.9rem;
+            color: var(--btn-outline-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .member-me {
+            color: var(--footer-text);
+            font-size: 0.8rem;
+        }
+
+        /* Home screen: rejoin offer and pending share hint */
+        .rejoin-banner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.8rem 1rem;
+            margin-bottom: 1rem;
+            background: var(--join-area-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: var(--btn-outline-text);
+            font-size: 0.9rem;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .rejoin-banner > i {
+            font-size: 20px;
+            color: var(--message-name);
+            flex-shrink: 0;
+        }
+
+        .rejoin-banner .rejoin-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .rejoin-banner strong {
+            font-family: monospace;
+            font-size: 1rem;
+        }
+
+        .rejoin-banner .btn {
+            width: auto;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .rejoin-banner .rejoin-dismiss {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: var(--leave-btn-bg);
+            color: var(--leave-btn-text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .share-hint {
+            margin-bottom: 1rem;
+            padding: 0.7rem 1rem;
+            border-radius: 12px;
+            background: var(--system-message-bg);
+            color: var(--system-message-text);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: center;
         }
 
         .chat-link {
@@ -1100,6 +1487,7 @@ body:not(.dark) .scroll-bottom-btn {
             }
 
             .image-preview-bar,
+            .reply-bar,
             .chat-input-area {
                 flex-shrink: 0;
             }
@@ -1151,6 +1539,15 @@ body:not(.dark) .scroll-bottom-btn {
         <!-- Home View -->
         <div id="homeView">
             <div class="home-panel">
+                <!-- Offered when the room from the last visit still exists -->
+                <div id="rejoinBanner" class="rejoin-banner hidden">
+                    <i class="ph ph-clock-counter-clockwise"></i>
+                    <div class="rejoin-text">You were in room <strong id="rejoinRoomId">---</strong></div>
+                    <button class="btn btn-primary" id="rejoinBtn" type="button">Rejoin</button>
+                    <button class="rejoin-dismiss" id="dismissRejoinBtn" type="button" title="Dismiss" aria-label="Dismiss"><i class="ph ph-x"></i></button>
+                </div>
+                <!-- Content shared into the app is waiting for a room -->
+                <div id="shareHint" class="share-hint hidden">Shared content is ready: create or join a room to send it.</div>
                 <button class="btn btn-primary" id="makeRoomBtn">
                     <span id="makeBtnText">Create Room</span>
                     <span id="makeBtnSpinner" class="spinner" style="display: none;"></span>
@@ -1209,6 +1606,9 @@ body:not(.dark) .scroll-bottom-btn {
                         </div>
                     </div>
                 </div>
+
+                <!-- Who is in the room (opens from the member count) -->
+                <div id="memberPopover" class="member-popover hidden" role="dialog" aria-label="People in this room"></div>
             </div>
             
             <div class="messages-wrap">
@@ -1219,6 +1619,9 @@ body:not(.dark) .scroll-bottom-btn {
                     <i class="ph ph-caret-down"></i>
                     <span id="scrollBadge" class="badge hidden">0</span>
                 </button>
+                <div id="typingIndicator" class="typing-indicator" aria-live="polite"></div>
+                <!-- Actions for the selected message (react, reply, delete); the buttons are built by script -->
+                <div id="msgToolbar" class="msg-toolbar hidden" role="toolbar" aria-label="Message actions"></div>
             </div>
             <!-- Pasted image waiting to be sent -->
             <div id="imagePreviewBar" class="image-preview-bar hidden">
@@ -1228,6 +1631,14 @@ body:not(.dark) .scroll-bottom-btn {
                     <span>Add a caption or press Send</span>
                 </div>
                 <button id="cancelImageBtn" type="button" title="Remove image"><i class="ph ph-x"></i></button>
+            </div>
+            <!-- Message being replied to -->
+            <div id="replyBar" class="reply-bar hidden">
+                <div class="reply-bar-text">
+                    <strong id="replyBarNick"></strong>
+                    <span id="replyBarText"></span>
+                </div>
+                <button id="cancelReplyBtn" type="button" title="Cancel reply" aria-label="Cancel reply"><i class="ph ph-x"></i></button>
             </div>
             <div class="chat-input-area">
                 <button id="attachImageBtn" class="attach-btn" type="button" title="Send an image" aria-label="Send an image"><i class="ph ph-image"></i></button>
@@ -1282,18 +1693,43 @@ body:not(.dark) .scroll-bottom-btn {
     });
 
     // --- Socket.io ---
+    // A private id for this browser, sent with every connection so the server recognises the same
+    // person after a reload or reconnect (own messages, reactions, deleting). Never shown to others.
+    function getClientId() {
+        const pattern = /^[A-Za-z0-9_-]{8,64}$/;
+        const fresh = () => {
+            if (window.crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID().replace(/-/g, '');
+            let id = '';
+            for (let i = 0; i < 32; i++) id += Math.floor(Math.random() * 16).toString(16);
+            return id;
+        };
+        try {
+            let id = localStorage.getItem('joshchat-client-id');
+            if (!id || !pattern.test(id)) {
+                id = fresh();
+                localStorage.setItem('joshchat-client-id', id);
+            }
+            return id;
+        } catch (e) {
+            return fresh(); // Storage unavailable (e.g. blocked): a per-page id still works for this visit
+        }
+    }
+    const clientId = getClientId();
+
     const SOCKET_URL = 'https://linkdrop-server-k92j.onrender.com';
     const socket = io(SOCKET_URL, {
         reconnection: true,             // Enable automatic reconnection
         reconnectionAttempts: 20,       // Try 20 times (gives server ~60 seconds to wake up)
         reconnectionDelay: 2000,        // Wait 2 seconds between attempts
         reconnectionDelayMax: 5000,     // Wait max 5 seconds between attempts
-        timeout: 20000                  // 20 second connection timeout
+        timeout: 20000,                 // 20 second connection timeout
+        auth: { clientId }
     });
 
     let currentRoomId = null;
     let myNick = '';
-    let messageHistory = [];            // Local room message storage
+    const messagesById = new Map();     // message id -> { msg, el } for everything shown in the current room
+    let lastDateKey = null;             // Day of the last message shown, for the date separators
 
     // DOM elements
     const homeView = document.getElementById('homeView');
@@ -1337,6 +1773,20 @@ body:not(.dark) .scroll-bottom-btn {
     const roomBar = document.getElementById('roomBar');
     const roomIdBarDisplay = document.getElementById('roomIdBarDisplay');
     const memberCountBarDisplay = document.getElementById('memberCountBarDisplay');
+    // Message features / member list / rejoin / share elements
+    const msgToolbar = document.getElementById('msgToolbar');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const replyBar = document.getElementById('replyBar');
+    const replyBarNick = document.getElementById('replyBarNick');
+    const replyBarText = document.getElementById('replyBarText');
+    const cancelReplyBtn = document.getElementById('cancelReplyBtn');
+    const memberPopover = document.getElementById('memberPopover');
+    const memberCountBox = document.querySelector('.member-count-box');
+    const rejoinBanner = document.getElementById('rejoinBanner');
+    const rejoinRoomId = document.getElementById('rejoinRoomId');
+    const rejoinBtn = document.getElementById('rejoinBtn');
+    const dismissRejoinBtn = document.getElementById('dismissRejoinBtn');
+    const shareHint = document.getElementById('shareHint');
 
     // Handle create room loading state
     let createRoomTimeout = null;
@@ -1460,37 +1910,89 @@ scrollBottomBtn.addEventListener('click', () => {
         return lastMsgRect.bottom <= (containerRect.bottom + 15);
     }
 
-    // Creates a chat bubble. `image` is a data URL (or null); `imageOmitted` marks an image that
-    // was left out of the history sync because it was too old to fit in the payload.
-    function buildMessageElement(name, text, isOwn, image = null, imageOmitted = false) {
+    // Creates a chat bubble from a normalized message object (see normalizeMessage):
+    // name, optional quote, optional image (or "not available" placeholder), text, reactions, time.
+    function buildMessageElement(msg) {
         const div = document.createElement('div');
-        div.className = 'message' + (isOwn ? ' own' : '');
+        div.className = 'message' + (msg.own ? ' own' : '');
+        if (msg.id) div.dataset.id = msg.id;
+        div.dataset.ts = String(msg.timestamp);
 
-        const safeText = escapeHtml(text || '');
-        const linkedText = linkify(safeText);
+        const name = document.createElement('span');
+        name.className = 'msg-name';
+        name.textContent = msg.own ? 'You' : msg.nick;
+        div.appendChild(name);
 
-        div.innerHTML = `<span class="msg-name">${escapeHtml(isOwn ? 'You' : name)}</span>` + (safeText ? `<div>${linkedText}</div>` : '');
+        const body = document.createElement('div');
+        body.className = 'msg-body';
+        div.appendChild(body);
+        renderMessageBody(div, msg);
 
-        if (image) {
+        const time = document.createElement('span');
+        time.className = 'msg-time';
+        time.textContent = formatTime(msg.timestamp);
+        time.title = new Date(msg.timestamp).toLocaleString();
+        div.appendChild(time);
+
+        if (msg.id) messagesById.set(msg.id, { msg, el: div });
+        return div;
+    }
+
+    // (Re)draws everything between the name and the time: quote, image, text and reactions,
+    // or the "deleted" notice
+    function renderMessageBody(div, msg) {
+        const body = div.querySelector('.msg-body');
+        body.innerHTML = '';
+        div.classList.toggle('deleted', !!msg.deleted);
+        if (msg.deleted) {
+            const note = document.createElement('div');
+            note.className = 'msg-deleted';
+            note.innerHTML = '<i class="ph ph-prohibit"></i> Message deleted';
+            body.appendChild(note);
+            return;
+        }
+        if (msg.replyTo && msg.replyTo.nick) {
+            const quote = document.createElement('div');
+            quote.className = 'msg-quote';
+            quote.title = 'Go to the original message';
+            quote.dataset.target = msg.replyTo.id || '';
+            const quoteNick = document.createElement('span');
+            quoteNick.className = 'msg-quote-nick';
+            quoteNick.textContent = msg.replyTo.nick;
+            const quoteText = document.createElement('span');
+            quoteText.className = 'msg-quote-text';
+            quoteText.textContent = msg.replyTo.text || '';
+            quote.appendChild(quoteNick);
+            quote.appendChild(quoteText);
+            body.appendChild(quote);
+        }
+        if (msg.image) {
             const img = document.createElement('img');
             img.className = 'msg-image';
             img.alt = 'Image';
             img.title = 'Click to enlarge';
-            img.src = image; // Set as a property, never through an HTML string
-            img.addEventListener('click', () => openLightbox(image));
-            div.insertBefore(img, div.children[1] || null);
-        } else if (imageOmitted) {
+            img.src = msg.image; // Set as a property, never through an HTML string
+            img.addEventListener('click', () => openLightbox(msg.image));
+            body.appendChild(img);
+        } else if (msg.imageOmitted) {
             const note = document.createElement('div');
             note.className = 'msg-image-missing';
             note.innerHTML = '<i class="ph ph-image"></i> Image not available';
-            div.insertBefore(note, div.children[1] || null);
+            body.appendChild(note);
         }
-
-        return div;
+        if (msg.message) {
+            const text = document.createElement('div');
+            text.className = 'msg-text';
+            text.innerHTML = linkify(escapeHtml(msg.message));
+            body.appendChild(text);
+        }
+        renderReactions(div, msg);
     }
 
-    function addMessage(name, text, isOwn = false, image = null) {
-    const div = buildMessageElement(name, text, isOwn, image);
+    function addMessage(msg) {
+    const isOwn = msg.own;
+    addDateSeparatorIfNeeded(msg.timestamp);
+    const div = buildMessageElement(msg);
     
     const threshold = 15;
     const isTabFocused = !document.hidden && document.hasFocus();
@@ -1556,6 +2058,10 @@ scrollBottomBtn.addEventListener('click', () => {
 
     function clearMessages() {
         messagesDiv.innerHTML = '';
+        messagesById.clear();
+        lastDateKey = null;
+        clearSelection();
+        clearTypingUsers();
         // Nothing left to scroll to: hide the scroll-to-bottom button and reset the unread state,
         // otherwise they carry over from the previous room
         scrollBottomBtn.classList.remove('visible');
@@ -1568,9 +2074,11 @@ scrollBottomBtn.addEventListener('click', () => {
         chatView.classList.add('hidden');
         if (currentRoomId) socket.emit('leave_room', { roomId: currentRoomId });
         currentRoomId = null;
-        messageHistory = []; // Clear the local client message history
         clearMessages();
         clearPendingImage();
+        clearPendingReply();
+        closeMemberPopover();
+        roomMembers = [];
         joinError.classList.add('hidden');
         qrContainer.innerHTML = '';
         setCreateRoomLoading(false);
@@ -1590,12 +2098,17 @@ scrollBottomBtn.addEventListener('click', () => {
         roomIdBarDisplay.innerText = roomId;
         memberCountDisplay.innerText = "...";
         memberCountBarDisplay.innerText = "...";
+        roomMembers = [];
+        closeMemberPopover();
         clearMessages();
         clearPendingImage();
+        clearPendingReply();
+        rememberRoom(roomId);
+        hideRejoinBanner();
         addSystemMessage(`Joined room.`);
         if (!phoneLayout.matches) msgInput.focus(); // On phones, don't pop the keyboard on room entry
         
-        // P2P History Sync Call
+        // The server answers with the room's recent messages
         socket.emit('request_history', { roomId });
 
         const directLink = `${window.location.origin}?room=${roomId}`;
@@ -1651,6 +2164,8 @@ if (qrLabel) {
                 colorLight: "#ffffff"
             });
         } catch(e) { console.warn("QR error", e); }
+
+        applyPendingShare(); // Content shared into the app (Android share sheet) goes into this room
     }
 
     function generateRandomNick() {
@@ -1668,14 +2183,19 @@ if (qrLabel) {
     function sendMessage() {
         const text = msgInput.value.trim();
         if (!currentRoomId) return;
+        const payload = { roomId: currentRoomId, message: text };
+        if (pendingReply) payload.replyTo = pendingReply.id;
         if (pendingImage) {
             // Image message: the caption is optional
-            socket.emit('chat_message', { roomId: currentRoomId, message: text, image: pendingImage });
+            payload.image = pendingImage;
             clearPendingImage();
-        } else {
-            if (!text) return;
-            socket.emit('chat_message', { roomId: currentRoomId, message: text });
+        } else if (!text) {
+            return;
         }
+        socket.emit('chat_message', payload);
+        clearPendingReply();
+        clearTimeout(typingStopTimer);
+        sendTyping(false);
         msgInput.value = '';
         msgInput.focus();
     }
@@ -1683,7 +2203,6 @@ if (qrLabel) {
     // ===== Image messages (paste from clipboard) =====
     const IMAGE_MAX_DIMENSION = 1920;              // Longest side after downscaling
     const IMAGE_TARGET_CHARS = 500 * 1024;         // ~375 KB of actual image data once the base64 is decoded
-    const HISTORY_SYNC_BUDGET = 5 * 1024 * 1024;   // Max size of the history payload sent to someone who joins
     const IMAGE_DATA_URL_PATTERN = /^data:image\/(png|jpeg|gif|webp);base64,[A-Za-z0-9+\/]+=*$/;
 
     let pendingImage = null;   // Data URL waiting in the preview bar
@@ -1822,6 +2341,9 @@ if (qrLabel) {
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
         if (!lightbox.classList.contains('hidden')) closeLightbox();
+        else if (memberPopoverOpen) closeMemberPopover();
+        else if (selectedMessageId) clearSelection();
+        else if (pendingReply) clearPendingReply();
         else if (pendingImage) clearPendingImage();
     });
 
@@ -1831,30 +2353,6 @@ if (qrLabel) {
             if (img.complete) return;
             img.addEventListener('load', () => { messagesDiv.scrollTop = messagesDiv.scrollHeight; }, { once: true });
         });
-    }
-
-    // Builds the history payload for someone who just joined without exceeding the server's buffer limit.
-    // The newest images are included first; once the budget is used up, older messages keep their text
-    // but their image is replaced with a placeholder.
-    function buildHistoryForSync() {
-        const out = [];
-        let used = 0;
-        let imagesAllowed = true;
-        for (let i = messageHistory.length - 1; i >= 0; i--) {
-            const m = messageHistory[i];
-            const textCost = (m.message ? m.message.length : 0) + 64;
-            const imageCost = m.image ? m.image.length : 0;
-            if (used + textCost > HISTORY_SYNC_BUDGET) break; // Even the text no longer fits
-            if (m.image && (!imagesAllowed || used + textCost + imageCost > HISTORY_SYNC_BUDGET)) {
-                imagesAllowed = false;
-                used += textCost;
-                out.push({ nick: m.nick, message: m.message, image: null, imageOmitted: true });
-            } else {
-                used += textCost + imageCost;
-                out.push(m);
-            }
-        }
-        return out.reverse();
     }
 
     // ===== Phone layout (viewports up to 600px wide) =====
@@ -1908,7 +2406,7 @@ if (qrLabel) {
     }
     syncAppHeight();
 
-    headerLeaveBtn.addEventListener('click', showHome);
+    headerLeaveBtn.addEventListener('click', leaveRoomByChoice);
 
     toggleQrBtn.addEventListener('click', () => {
         const open = qrWrapper.classList.toggle('qr-open');
@@ -1951,7 +2449,12 @@ if (qrLabel) {
         roomBar.setAttribute('aria-expanded', open ? 'true' : 'false');
     }
 
-    roomBar.addEventListener('click', () => {
+    roomBar.addEventListener('click', (e) => {
+        const membersEl = e.target.closest('.room-bar-members');
+        if (membersEl) {
+            toggleMemberPopover(membersEl); // The member count opens the list instead of the panel
+            return;
+        }
         setRoomPanelOpen(!roomHeader.classList.contains('panel-open'));
     });
 
@@ -1959,6 +2462,536 @@ if (qrLabel) {
     // One-way on purpose: re-expanding on blur would make the header flap when tapping Send.
     msgInput.addEventListener('focus', () => {
         if (phoneLayout.matches) setRoomPanelOpen(false);
+    });
+
+    // ===== Message features: timestamps, date separators, reactions, replies, delete =====
+    const REACTION_EMOJIS = ['\uD83D\uDC4D', '\u2764\uFE0F', '\uD83D\uDE02', '\uD83D\uDE2E', '\uD83D\uDE22', '\uD83D\uDD25']; // 👍 ❤️ 😂 😮 😢 🔥 (must match server.js)
+    const messagesWrap = document.querySelector('.messages-wrap');
+
+    function formatTime(ts) {
+        try {
+            return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+            return '';
+        }
+    }
+
+    function dateKey(ts) {
+        return new Date(ts).toDateString();
+    }
+
+    function dateLabel(ts) {
+        const d = new Date(ts);
+        const now = new Date();
+        if (d.toDateString() === now.toDateString()) return 'Today';
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+        const opts = { weekday: 'long', day: 'numeric', month: 'long' };
+        if (d.getFullYear() !== now.getFullYear()) opts.year = 'numeric';
+        return d.toLocaleDateString(undefined, opts);
+    }
+
+    function makeDateDivider(ts) {
+        const el = document.createElement('div');
+        el.className = 'date-divider';
+        el.textContent = dateLabel(ts);
+        return el;
+    }
+
+    function addDateSeparatorIfNeeded(ts) {
+        const key = dateKey(ts);
+        if (key === lastDateKey) return;
+        messagesDiv.appendChild(makeDateDivider(ts));
+        lastDateKey = key;
+    }
+
+    // Recomputes every date divider from the messages actually in the chat (used after history is inserted)
+    function rebuildDateSeparators() {
+        messagesDiv.querySelectorAll('.date-divider').forEach((el) => el.remove());
+        let key = null;
+        messagesDiv.querySelectorAll('.message[data-ts]').forEach((el) => {
+            const ts = Number(el.dataset.ts);
+            const k = dateKey(ts);
+            if (k === key) return;
+            // Keep the "new messages" line directly above its message
+            const before = (el.previousElementSibling && el.previousElementSibling.id === 'unreadDivider') ? el.previousElementSibling : el;
+            messagesDiv.insertBefore(makeDateDivider(ts), before);
+            key = k;
+        });
+        lastDateKey = key;
+    }
+
+    function normalizeReactions(raw) {
+        const out = {};
+        if (raw && typeof raw === 'object') {
+            Object.keys(raw).forEach((emoji) => {
+                if (REACTION_EMOJIS.includes(emoji) && Array.isArray(raw[emoji]) && raw[emoji].length) {
+                    out[emoji] = raw[emoji].map(String);
+                }
+            });
+        }
+        return out;
+    }
+
+    // Turns whatever the server sent into a message object the renderer can trust
+    function normalizeMessage(data) {
+        const replyTo = data.replyTo && typeof data.replyTo === 'object' ? data.replyTo : null;
+        return {
+            id: typeof data.id === 'string' ? data.id : null,
+            nick: typeof data.nick === 'string' ? data.nick : 'Anonymous',
+            message: typeof data.message === 'string' ? data.message : '',
+            image: isSafeImage(data.image) ? data.image : null,
+            imageOmitted: !!data.imageOmitted,
+            own: data.own === true,
+            timestamp: typeof data.timestamp === 'number' ? data.timestamp : Date.now(),
+            replyTo: replyTo ? { id: String(replyTo.id || ''), nick: String(replyTo.nick || ''), text: String(replyTo.text || '') } : null,
+            reactions: normalizeReactions(data.reactions),
+            mine: Array.isArray(data.mine) ? data.mine.filter((e) => typeof e === 'string') : [],
+            deleted: false
+        };
+    }
+
+    function renderReactions(div, msg) {
+        let row = div.querySelector('.msg-reactions');
+        const emojis = REACTION_EMOJIS.filter((emoji) => msg.reactions[emoji] && msg.reactions[emoji].length);
+        if (!emojis.length) {
+            if (row) row.remove();
+            return;
+        }
+        if (!row) {
+            row = document.createElement('div');
+            row.className = 'msg-reactions';
+            div.querySelector('.msg-body').appendChild(row);
+        }
+        row.innerHTML = '';
+        emojis.forEach((emoji) => {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'reaction-chip' + (msg.mine.includes(emoji) ? ' mine' : '');
+            chip.dataset.emoji = emoji;
+            chip.textContent = `${emoji} ${msg.reactions[emoji].length}`;
+            chip.title = msg.reactions[emoji].join(', ');
+            row.appendChild(chip);
+        });
+    }
+
+    function toggleReaction(messageId, emoji) {
+        if (!currentRoomId || !REACTION_EMOJIS.includes(emoji)) return;
+        socket.emit('react', { roomId: currentRoomId, messageId, emoji });
+    }
+
+    function jumpToMessage(id) {
+        const entry = id ? messagesById.get(id) : null;
+        if (!entry) return;
+        entry.el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        entry.el.classList.add('flash');
+        setTimeout(() => entry.el.classList.remove('flash'), 1200);
+    }
+
+    // --- Selecting a message shows a small toolbar: react, reply, delete (own messages only) ---
+    let selectedMessageId = null;
+    let deleteArmed = false;
+
+    function buildToolbar() {
+        msgToolbar.innerHTML = '';
+        REACTION_EMOJIS.forEach((emoji) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'toolbar-emoji';
+            b.dataset.emoji = emoji;
+            b.textContent = emoji;
+            b.title = 'React';
+            msgToolbar.appendChild(b);
+        });
+        const reply = document.createElement('button');
+        reply.type = 'button';
+        reply.id = 'toolbarReplyBtn';
+        reply.title = 'Reply';
+        reply.setAttribute('aria-label', 'Reply');
+        reply.innerHTML = '<i class="ph ph-arrow-bend-up-left"></i>';
+        msgToolbar.appendChild(reply);
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.id = 'toolbarDeleteBtn';
+        del.title = 'Delete';
+        del.setAttribute('aria-label', 'Delete');
+        del.innerHTML = '<i class="ph ph-trash"></i>';
+        msgToolbar.appendChild(del);
+    }
+    buildToolbar();
+
+    function selectMessage(id) {
+        clearSelection();
+        const entry = messagesById.get(id);
+        if (!entry || entry.msg.deleted) return;
+        selectedMessageId = id;
+        entry.el.classList.add('selected');
+        const del = document.getElementById('toolbarDeleteBtn');
+        del.classList.toggle('hidden', !entry.msg.own);
+        del.classList.remove('confirm');
+        del.innerHTML = '<i class="ph ph-trash"></i>';
+        deleteArmed = false;
+        msgToolbar.querySelectorAll('.toolbar-emoji').forEach((b) => b.classList.toggle('active', entry.msg.mine.includes(b.dataset.emoji)));
+        msgToolbar.classList.remove('hidden');
+        messagesWrap.classList.add('has-selection');
+    }
+
+    function clearSelection() {
+        if (selectedMessageId) {
+            const entry = messagesById.get(selectedMessageId);
+            if (entry) entry.el.classList.remove('selected');
+        }
+        selectedMessageId = null;
+        deleteArmed = false;
+        msgToolbar.classList.add('hidden');
+        messagesWrap.classList.remove('has-selection');
+    }
+
+    messagesDiv.addEventListener('click', (e) => {
+        const chip = e.target.closest('.reaction-chip');
+        if (chip) {
+            const bubble = chip.closest('.message');
+            if (bubble && bubble.dataset.id) toggleReaction(bubble.dataset.id, chip.dataset.emoji);
+            return;
+        }
+        const quote = e.target.closest('.msg-quote');
+        if (quote) {
+            jumpToMessage(quote.dataset.target);
+            return;
+        }
+        if (e.target.closest('a, img, button')) return; // Links, images and buttons keep their own behaviour
+        const bubble = e.target.closest('.message');
+        if (!bubble || !bubble.dataset.id) return;
+        if (window.getSelection && String(window.getSelection()).length) return; // Selecting text, not the message
+        if (selectedMessageId === bubble.dataset.id) clearSelection();
+        else selectMessage(bubble.dataset.id);
+    });
+
+    msgToolbar.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn || !selectedMessageId) return;
+        const id = selectedMessageId;
+        if (btn.classList.contains('toolbar-emoji')) {
+            toggleReaction(id, btn.dataset.emoji);
+            clearSelection();
+        } else if (btn.id === 'toolbarReplyBtn') {
+            const entry = messagesById.get(id);
+            clearSelection();
+            if (entry) setPendingReply(entry.msg);
+        } else if (btn.id === 'toolbarDeleteBtn') {
+            if (!deleteArmed) {
+                // First tap arms the button, the second one deletes
+                deleteArmed = true;
+                btn.classList.add('confirm');
+                btn.innerHTML = '<i class="ph ph-trash"></i> Delete?';
+                return;
+            }
+            socket.emit('delete_message', { roomId: currentRoomId, messageId: id });
+            clearSelection();
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (selectedMessageId && !e.target.closest('.message, .msg-toolbar')) clearSelection();
+        if (memberPopoverOpen && !e.target.closest('#memberPopover, .room-bar-members, .member-count-box')) closeMemberPopover();
+    });
+
+    // --- Replying: the quoted message is shown above the input until the reply is sent ---
+    let pendingReply = null;
+
+    function setPendingReply(msg) {
+        if (!msg || !msg.id) return;
+        pendingReply = {
+            id: msg.id,
+            nick: msg.own ? 'You' : msg.nick,
+            text: msg.message || ((msg.image || msg.imageOmitted) ? '\uD83D\uDCF7 Photo' : '')
+        };
+        replyBarNick.textContent = pendingReply.nick;
+        replyBarText.textContent = pendingReply.text;
+        replyBar.classList.remove('hidden');
+        msgInput.focus();
+    }
+
+    function clearPendingReply() {
+        pendingReply = null;
+        replyBar.classList.add('hidden');
+    }
+
+    cancelReplyBtn.addEventListener('click', () => {
+        clearPendingReply();
+        msgInput.focus();
+    });
+
+    // --- Typing indicator ---
+    let typingActive = false;
+    let typingStopTimer = null;
+    const typingUsers = new Map(); // nick -> expiry timer
+
+    function sendTyping(state) {
+        if (!currentRoomId || typingActive === state) return;
+        typingActive = state;
+        socket.emit('typing', { roomId: currentRoomId, typing: state });
+    }
+
+    msgInput.addEventListener('input', () => {
+        if (!currentRoomId) return;
+        clearTimeout(typingStopTimer);
+        if (msgInput.value.trim()) {
+            sendTyping(true);
+            typingStopTimer = setTimeout(() => sendTyping(false), 2500);
+        } else {
+            sendTyping(false);
+        }
+    });
+
+    function renderTyping() {
+        const names = Array.from(typingUsers.keys());
+        if (!names.length) {
+            typingIndicator.classList.remove('visible');
+            typingIndicator.textContent = '';
+            return;
+        }
+        let text;
+        if (names.length === 1) text = `${names[0]} is typing`;
+        else if (names.length === 2) text = `${names[0]} and ${names[1]} are typing`;
+        else text = 'Several people are typing';
+        typingIndicator.textContent = text;
+        const dots = document.createElement('span');
+        dots.className = 'typing-dots';
+        dots.innerHTML = '<i></i><i></i><i></i>';
+        typingIndicator.appendChild(dots);
+        typingIndicator.classList.add('visible');
+    }
+
+    function clearTypingUsers() {
+        for (const timer of typingUsers.values()) clearTimeout(timer);
+        typingUsers.clear();
+        renderTyping();
+    }
+
+    socket.on('typing', (data) => {
+        if (!data || data.roomId !== currentRoomId || typeof data.nick !== 'string') return;
+        const existing = typingUsers.get(data.nick);
+        if (existing) clearTimeout(existing);
+        if (data.typing) {
+            // Expires on its own in case the "stopped typing" event never arrives
+            typingUsers.set(data.nick, setTimeout(() => {
+                typingUsers.delete(data.nick);
+                renderTyping();
+            }, 4000));
+        } else {
+            typingUsers.delete(data.nick);
+        }
+        renderTyping();
+    });
+
+    // --- Member list behind the member count ---
+    let roomMembers = [];
+    let memberPopoverOpen = false;
+
+    socket.on('member_list', (data) => {
+        if (!data || data.roomId !== currentRoomId || !Array.isArray(data.members)) return;
+        roomMembers = data.members.filter((n) => typeof n === 'string');
+        if (memberPopoverOpen) renderMemberPopover();
+    });
+
+    function renderMemberPopover() {
+        memberPopover.innerHTML = '';
+        const title = document.createElement('div');
+        title.className = 'member-popover-title';
+        title.textContent = `In this room (${roomMembers.length})`;
+        memberPopover.appendChild(title);
+        roomMembers.forEach((nick) => {
+            const row = document.createElement('div');
+            row.className = 'member-row';
+            row.textContent = nick;
+            if (nick === myNick) {
+                const me = document.createElement('span');
+                me.className = 'member-me';
+                me.textContent = '(you)';
+                row.appendChild(me);
+            }
+            memberPopover.appendChild(row);
+        });
+    }
+
+    function openMemberPopover(anchor) {
+        renderMemberPopover();
+        memberPopover.classList.remove('hidden');
+        memberPopoverOpen = true;
+        // Below the element that was tapped, kept inside the room header
+        const top = anchor.offsetTop + anchor.offsetHeight + 6;
+        let left = anchor.offsetLeft;
+        const maxLeft = roomHeader.clientWidth - memberPopover.offsetWidth - 8;
+        if (left > maxLeft) left = Math.max(8, maxLeft);
+        memberPopover.style.top = top + 'px';
+        memberPopover.style.left = left + 'px';
+    }
+
+    function closeMemberPopover() {
+        memberPopover.classList.add('hidden');
+        memberPopoverOpen = false;
+    }
+
+    function toggleMemberPopover(anchor) {
+        if (memberPopoverOpen) closeMemberPopover();
+        else openMemberPopover(anchor);
+    }
+
+    memberCountBox.addEventListener('click', () => toggleMemberPopover(memberCountBox));
+
+    // --- Rejoin the last room ---
+    const LAST_ROOM_KEY = 'joshchat-last-room';
+
+    function rememberRoom(roomId) {
+        try { localStorage.setItem(LAST_ROOM_KEY, JSON.stringify({ roomId, at: Date.now() })); } catch (e) {}
+    }
+
+    function readLastRoom() {
+        try {
+            const raw = localStorage.getItem(LAST_ROOM_KEY);
+            if (!raw) return null;
+            const saved = JSON.parse(raw);
+            if (!saved || typeof saved.roomId !== 'string' || typeof saved.at !== 'number') return null;
+            if (Date.now() - saved.at > 7 * 24 * 60 * 60 * 1000) return null; // Far too old to still exist
+            return saved.roomId;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function forgetLastRoom() {
+        try { localStorage.removeItem(LAST_ROOM_KEY); } catch (e) {}
+        hideRejoinBanner();
+    }
+
+    function showRejoinBanner(roomId) {
+        rejoinRoomId.textContent = roomId;
+        rejoinBanner.classList.remove('hidden');
+    }
+
+    function hideRejoinBanner() {
+        rejoinBanner.classList.add('hidden');
+    }
+
+    // Leaving on purpose (the Leave buttons) also drops the rejoin offer; closing the tab keeps it
+    function leaveRoomByChoice() {
+        forgetLastRoom();
+        showHome();
+    }
+
+    rejoinBtn.addEventListener('click', () => {
+        const roomId = rejoinRoomId.textContent.trim();
+        if (!roomId) return;
+        hideRejoinBanner();
+        joinInput.value = roomId;
+        joinBtn.click();
+    });
+
+    dismissRejoinBtn.addEventListener('click', forgetLastRoom);
+
+    socket.on('room_check', (data) => {
+        if (!data || typeof data.roomId !== 'string') return;
+        if (!data.exists) {
+            if (readLastRoom() === data.roomId) forgetLastRoom();
+            if (pendingShare) showShareHint();
+            return;
+        }
+        if (currentRoomId || !chatView.classList.contains('hidden')) return; // Already in a room
+        if (pendingShare) {
+            // Shared content goes straight back into the room it was most likely meant for
+            joinInput.value = data.roomId;
+            joinBtn.click();
+            return;
+        }
+        showRejoinBanner(data.roomId);
+    });
+
+    // --- Content shared into the app from the Android share sheet (see sw.js) ---
+    let pendingShare = null;
+
+    async function loadSharedContent(id) {
+        if (!('caches' in window) || !/^[a-z0-9]{1,40}$/i.test(id)) return null;
+        try {
+            const cache = await caches.open('joshchat-share-inbox');
+            const metaRes = await cache.match(`/share-inbox/${id}/meta`);
+            if (!metaRes) return null;
+            const meta = await metaRes.json();
+            let file = null;
+            if (meta && meta.hasFile) {
+                const fileRes = await cache.match(`/share-inbox/${id}/file`);
+                if (fileRes) {
+                    const blob = await fileRes.blob();
+                    file = new File([blob], meta.name || 'shared-image', { type: meta.type || blob.type });
+                }
+            }
+            await cache.delete(`/share-inbox/${id}/meta`);
+            await cache.delete(`/share-inbox/${id}/file`);
+            const text = [meta.title, meta.text, meta.url].filter((s) => typeof s === 'string' && s.trim()).join(' ').trim();
+            if (!file && !text) return null;
+            return { file, text };
+        } catch (err) {
+            console.warn('Could not read shared content:', err);
+            return null;
+        }
+    }
+
+    function showShareHint() {
+        shareHint.classList.remove('hidden');
+    }
+
+    function applyPendingShare() {
+        if (!pendingShare) return;
+        const share = pendingShare;
+        pendingShare = null;
+        shareHint.classList.add('hidden');
+        if (share.text) msgInput.value = share.text.substring(0, 3000);
+        if (share.file) handleImageFile(share.file);
+        else msgInput.focus();
+    }
+
+    // --- Server feedback ---
+    socket.on('reaction_update', (data) => {
+        if (!data || data.roomId !== currentRoomId) return;
+        const entry = messagesById.get(data.messageId);
+        if (!entry) return;
+        entry.msg.reactions = normalizeReactions(data.reactions);
+        if (Array.isArray(data.mine)) entry.msg.mine = data.mine.filter((e) => typeof e === 'string');
+        renderReactions(entry.el, entry.msg);
+        if (selectedMessageId === data.messageId) {
+            msgToolbar.querySelectorAll('.toolbar-emoji').forEach((b) => b.classList.toggle('active', entry.msg.mine.includes(b.dataset.emoji)));
+        }
+    });
+
+    socket.on('message_deleted', (data) => {
+        if (!data || data.roomId !== currentRoomId) return;
+        const entry = messagesById.get(data.messageId);
+        if (!entry) return;
+        entry.msg.deleted = true;
+        entry.msg.message = '';
+        entry.msg.image = null;
+        entry.msg.imageOmitted = false;
+        entry.msg.replyTo = null;
+        entry.msg.reactions = {};
+        entry.msg.mine = [];
+        renderMessageBody(entry.el, entry.msg);
+        if (selectedMessageId === data.messageId) clearSelection();
+        if (pendingReply && pendingReply.id === data.messageId) clearPendingReply();
+    });
+
+    let lastRateWarning = 0;
+    socket.on('rate_limited', (data) => {
+        if (!data || (data.action !== 'chat_message' && data.action !== 'image')) return;
+        if (Date.now() - lastRateWarning < 5000) return;
+        lastRateWarning = Date.now();
+        addSystemMessage(data.action === 'image'
+            ? '⚠️ Too many images at once. Wait a moment before sending more.'
+            : '⚠️ You are sending messages too fast. Wait a moment.');
+    });
+
+    socket.on('action_error', (data) => {
+        if (data && typeof data.error === 'string') addSystemMessage('⚠️ ' + data.error);
     });
 
     // Connection Restoration Setup
@@ -1994,12 +3027,16 @@ if (qrLabel) {
 
     // Handle Nickname Changes
     socket.on('nickname_changed', (data) => {
+        if (!data || typeof data.newNick !== 'string') return;
         const oldNick = myNick;
         myNick = data.newNick;
         nickInput.value = myNick;
         
-        // Notify the user if they actively changed it
-        if (oldNick && oldNick !== myNick) {
+        if (data.reason === 'taken') {
+            // Someone in the room already uses that name, so the server picked a variant
+            addSystemMessage(`"${data.oldNick || oldNick}" is taken in this room, so you're now ${myNick}.`);
+        } else if (oldNick && oldNick !== myNick) {
+            // Notify the user if they actively changed it
             addSystemMessage(`Name updated to ${myNick}.`);
         }
     });
@@ -2043,50 +3080,69 @@ window.addEventListener('focus', clearUnreadNotifications);
 window.addEventListener('click', clearUnreadNotifications);
     
     socket.on('room_error', (data) => {
-        addSystemMessage('⚠️ ' + data.error + ' Returning home...');
+        forgetLastRoom();
+        addSystemMessage('⚠️ ' + (data && data.error ? data.error : 'Room error.') + ' Returning home...');
         setTimeout(() => {
             showHome();
         }, 3000);
     });
     
     socket.on('new_message', (data) => {
-        if (data.roomId === currentRoomId) {
-            if ((document.hidden || !document.hasFocus()) && data.nick !== myNick) {
+        if (!data || data.roomId !== currentRoomId) return;
+        const msg = normalizeMessage(data);
+        if (msg.id && messagesById.has(msg.id)) return; // Already shown (can happen around a reconnect)
+        if ((document.hidden || !document.hasFocus()) && !msg.own) {
             unreadCount++;
             document.title = `(${unreadCount}) JoshChat`;
         }
-            const image = isSafeImage(data.image) ? data.image : null;
-            // Commit to local client history
-            messageHistory.push({ nick: data.nick, message: data.message, image });
-            addMessage(data.nick, data.message, data.nick === myNick, image);
+        // Their message arrived, so they are no longer "typing"
+        if (typingUsers.has(msg.nick)) {
+            clearTimeout(typingUsers.get(msg.nick));
+            typingUsers.delete(msg.nick);
+            renderTyping();
         }
+        addMessage(msg);
     });
 
-    // P2P History Sync Handlers
-    socket.on('request_history', (data) => {
-        // Master peer packages their message history and returns it
-        socket.emit('send_history', {
-            requesterId: data.requesterId,
-            history: buildHistoryForSync()
-        });
-    });
-
+    // History comes from the server's buffer when entering a room, and again after a reconnect
+    // to fill in anything missed while offline
     socket.on('history_response', (data) => {
-        const historicalMessages = data.history || [];
-        
-        // Sync local client history array seamlessly
-        messageHistory = [...historicalMessages, ...messageHistory];
-        
-        // Render history by safely prepending to prevent duplicate rendering of live streams
-        const fragment = document.createDocumentFragment();
-        historicalMessages.forEach(msg => {
-            const image = isSafeImage(msg.image) ? msg.image : null;
-            fragment.appendChild(buildMessageElement(msg.nick, msg.message, msg.nick === myNick, image, !!msg.imageOmitted));
+        if (!data || data.roomId !== currentRoomId || !Array.isArray(data.history)) return;
+        const fresh = [];
+        data.history.forEach((raw) => {
+            const msg = normalizeMessage(raw && typeof raw === 'object' ? raw : {});
+            if (!msg.id) return;
+            const known = messagesById.get(msg.id);
+            if (known) {
+                // Already shown: just bring its reactions up to date
+                known.msg.reactions = msg.reactions;
+                known.msg.mine = msg.mine;
+                renderReactions(known.el, known.msg);
+            } else {
+                fresh.push(msg);
+            }
         });
-        
-        stickToBottomOnImageLoad(fragment);
-        messagesDiv.insertBefore(fragment, messagesDiv.firstChild);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        if (!fresh.length) return;
+
+        const shown = messagesDiv.querySelectorAll('.message[data-ts]');
+        const lastShownTs = shown.length ? Number(shown[shown.length - 1].dataset.ts) : null;
+        const older = [];
+        const newer = [];
+        fresh.forEach((msg) => {
+            if (lastShownTs !== null && msg.timestamp >= lastShownTs) newer.push(msg);
+            else older.push(msg);
+        });
+
+        if (older.length) {
+            // Render history by prepending, so live messages that already arrived keep their place
+            const fragment = document.createDocumentFragment();
+            older.forEach((msg) => fragment.appendChild(buildMessageElement(msg)));
+            stickToBottomOnImageLoad(fragment);
+            messagesDiv.insertBefore(fragment, messagesDiv.firstChild);
+        }
+        newer.forEach((msg) => addMessage(msg)); // Missed while disconnected: shown like live messages
+        rebuildDateSeparators();
+        if (older.length && !newer.length) messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
     
     socket.on('room_notification', (notif) => {
@@ -2111,16 +3167,19 @@ window.addEventListener('click', clearUnreadNotifications);
     
 socket.on('join_result', (data) => {
         setJoinRoomLoading(false);
+        if (!data) return;
         if (data.success) {
             // FIX: If we are already looking at the room, just silently reconnect without wiping history
             if (currentRoomId === data.roomId && !chatView.classList.contains('hidden')) {
                 addSystemMessage('Connection restored. Rejoined chat.');
+                socket.emit('request_history', { roomId: data.roomId }); // Fill in anything missed while offline
             } else {
                 showChat(data.roomId);
             }
         } else {
+            if (data.roomId && readLastRoom() === data.roomId) forgetLastRoom(); // No point offering it again
             // FIX: If room expired on the server while you were away, go back home gracefully
-            if (currentRoomId === data.roomId) {
+            if (currentRoomId && currentRoomId === data.roomId) {
                 addSystemMessage('⚠️ Room session expired while you were away.');
                 setTimeout(() => showHome(), 2500);
             } else {
@@ -2153,7 +3212,7 @@ socket.on('join_result', (data) => {
     // sendMessage() to focus it again: keep the focus where it is so the keyboard stays put
     sendBtn.addEventListener('mousedown', (e) => e.preventDefault());
     msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) sendMessage(); }); // keydown: mobile keyboards don't reliably fire keypress
-    leaveBtn.addEventListener('click', showHome);
+    leaveBtn.addEventListener('click', leaveRoomByChoice);
     joinInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.isComposing) {
         joinBtn.click();
@@ -2176,10 +3235,30 @@ socket.on('join_result', (data) => {
 
     const urlParams = new URLSearchParams(window.location.search);
     const roomFromUrl = urlParams.get('room');
+    const sharedId = urlParams.get('shared');
+    if (roomFromUrl || sharedId) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
     if (roomFromUrl) {
         joinInput.value = roomFromUrl.toUpperCase();
         setTimeout(() => joinBtn.click(), 500);
-        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // Shared content (Android share sheet) and the offer to rejoin the last room
+    const lastRoomId = readLastRoom();
+    (async () => {
+        if (sharedId) pendingShare = await loadSharedContent(sharedId);
+        if (roomFromUrl) return; // The link decides the room; any shared content is applied on entry
+        if (lastRoomId) {
+            socket.emit('check_room', { roomId: lastRoomId }); // Queued until the connection is up
+        } else if (pendingShare) {
+            showShareHint();
+        }
+    })();
+
+    // The service worker only receives content from the share sheet (see sw.js); nothing is cached
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
 </script>
 	<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "c23d2e8109a541b799f0001f842980e5"}'></script><!-- End Cloudflare Web Analytics -->
