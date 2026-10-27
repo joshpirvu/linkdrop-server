@@ -58,9 +58,9 @@
             --chat-input-border: #dce5ec;
             --leave-btn-bg: #dce5ec;
             --leave-btn-text: #2c5a6e;
-            --footer-text: #6d8c9b;
+            --footer-text: #5b7281;   /* 5.0:1 on white (was #6d8c9b at 3.6:1) */
             --error-bg: #fff0f0;
-            --error-text: #d14545;
+            --error-text: #b93a3a;    /* 5.1:1 on the error background (was #d14545 at 4.1:1) */
             --room-id-box-bg: #ffffffcc;
             --nick-section-bg: white;
             
@@ -426,6 +426,40 @@ body:not(.dark) .scroll-bottom-btn {
             border: 1px solid var(--card-border);
         }
 
+        /* Optional name on the home screen, remembered for the next visit */
+        .name-area {
+            background: var(--join-area-bg);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--card-border);
+        }
+
+        .name-area label {
+            color: var(--btn-outline-text);
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: block;
+            margin-bottom: 0.8rem;
+        }
+
+        .name-area input {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--input-border);
+            background: var(--card-bg);
+            color: var(--btn-outline-text);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .name-area input:focus {
+            border-color: var(--btn-primary-bg);
+            box-shadow: 0 0 0 3px var(--input-focus-ring);
+        }
+
         .join-area label {
             color: var(--btn-outline-text);
             font-weight: 600;
@@ -721,12 +755,76 @@ body:not(.dark) .scroll-bottom-btn {
             text-align: right;
             font-size: 0.68rem;
             line-height: 1;
-            opacity: 0.6;
+            opacity: 0.7; /* 5:1 on both bubble colors in both themes */
             margin-top: 5px;
+        }
+
+        .message .msg-text {
+            white-space: pre-wrap; /* Keeps the line breaks typed with Shift+Enter */
+        }
+
+        /* Consecutive messages from the same person within a few minutes form a run:
+           the name is shown once, the bubbles sit closer, and only the last one shows the time
+           (the time of any message appears when it is selected) */
+        .message.continued {
+            margin-top: -8px;
+        }
+
+        .message.continued .msg-name {
+            display: none;
+        }
+
+        .message.has-next {
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        .message.has-next .msg-time {
+            display: none;
+        }
+
+        .message.selected .msg-time {
+            display: block;
+        }
+
+        /* Each name gets its own stable color (computed from the name, adjusted for contrast per theme) */
+        .message .msg-name,
+        .msg-quote-nick,
+        .member-row {
+            color: var(--name-light, var(--message-name));
+        }
+
+        body.dark .message .msg-name,
+        body.dark .msg-quote-nick,
+        body.dark .member-row {
+            color: var(--name-dark, var(--message-name));
+        }
+
+        .message.own .msg-name {
+            color: var(--message-name); /* "You" keeps the standard color */
+        }
+
+        .msg-quote {
+            border-left-color: var(--name-light, var(--message-name));
+        }
+
+        body.dark .msg-quote {
+            border-left-color: var(--name-dark, var(--message-name));
         }
 
         .message.selected {
             box-shadow: 0 0 0 2px var(--message-name);
+        }
+
+        /* Messages can be selected from the keyboard too (Tab to a message, Enter or Space to open its actions) */
+        .message:focus {
+            outline: none;
+        }
+
+        .message:focus-visible,
+        .msg-quote:focus-visible {
+            outline: 2px solid var(--message-name);
+            outline-offset: 2px;
         }
 
         .message.flash {
@@ -769,7 +867,6 @@ body:not(.dark) .scroll-bottom-btn {
             display: block;
             font-size: 0.72rem;
             font-weight: 700;
-            color: var(--message-name);
         }
 
         .msg-quote-text {
@@ -811,7 +908,7 @@ body:not(.dark) .scroll-bottom-btn {
             gap: 4px;
             font-style: italic;
             font-size: 0.9rem;
-            opacity: 0.6;
+            opacity: 0.7;
         }
 
         /* Floating actions for the selected message */
@@ -1028,7 +1125,7 @@ body:not(.dark) .scroll-bottom-btn {
             gap: 10px;
             padding: 8px 14px;
             font-size: 0.9rem;
-            color: var(--btn-outline-text);
+            font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -1117,23 +1214,30 @@ body:not(.dark) .scroll-bottom-btn {
 
         .chat-input-area {
             display: flex;
+            align-items: flex-end; /* The buttons stay on the bottom row while the textarea grows */
             gap: 8px;
         }
 
-        .chat-input-area input {
+        /* One line to start with (50px: 1.4 line-height + 0.8rem padding + border), grows up to 5 lines */
+        .chat-input-area textarea {
             flex: 1;
             min-width: 0;
-            padding: 0.9rem 1rem;
+            height: 50px;
+            max-height: 140px;
+            padding: 0.8rem 1rem;
             border-radius: 12px;
             border: 1px solid var(--input-border);
             background: var(--card-bg);
             color: var(--btn-outline-text);
             font-size: 1rem;
+            line-height: 1.4;
+            resize: none;
+            overflow-y: auto;
             outline: none;
-            transition: all 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        .chat-input-area input:focus {
+        .chat-input-area textarea:focus {
             border-color: var(--btn-primary-bg);
             box-shadow: 0 0 0 3px var(--input-focus-ring);
         }
@@ -1141,6 +1245,7 @@ body:not(.dark) .scroll-bottom-btn {
         .chat-input-area button {
             background: var(--btn-primary-bg);
             border: none;
+            height: 50px;
             padding: 0 1.5rem;
             border-radius: 12px;
             color: white;
@@ -1148,6 +1253,15 @@ body:not(.dark) .scroll-bottom-btn {
             cursor: pointer;
             transition: 0.2s;
             flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .chat-input-area .send-icon {
+            display: none;
+            font-size: 22px;
         }
 
         .leave-btn {
@@ -1359,6 +1473,7 @@ body:not(.dark) .scroll-bottom-btn {
         .chat-input-area .attach-btn {
             display: none;
             width: 48px;
+            height: 50px;
             padding: 0;
             align-items: center;
             justify-content: center;
@@ -1389,6 +1504,95 @@ body:not(.dark) .scroll-bottom-btn {
         /* ================= Phone layout ================= */
         /* Only viewports up to 600px wide (phones in portrait) get the full-screen app shell.
            Tablets and desktops keep the centered card layout above. */
+        /* ================= Desktop / tablet app-shell (viewports wider than 600px) ================= */
+        /* While in a room the card is as tall as the window and only the messages scroll; the home
+           screen keeps the card at its natural height. */
+        @media (min-width: 601px) {
+            body.in-chat .app-container {
+                height: calc(100vh - 2rem);  /* Fallback for older browsers */
+                height: calc(100dvh - 2rem);
+                display: flex;
+                flex-direction: column;
+            }
+
+            body.in-chat .header {
+                flex-shrink: 0;
+            }
+
+            body.in-chat .main-content {
+                flex: 1;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
+                overflow-y: auto; /* Only ever scrolls on windows too short for the layout */
+            }
+
+            body.in-chat #chatView {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                min-height: 0;
+            }
+
+            body.in-chat .room-header {
+                flex-shrink: 0;
+            }
+
+            body.in-chat .messages-wrap {
+                flex: 1;
+                min-height: 140px;
+            }
+
+            body.in-chat .messages-area {
+                height: 100%; /* Fills whatever is left between the room header and the input */
+            }
+
+            body.in-chat .image-preview-bar,
+            body.in-chat .reply-bar,
+            body.in-chat .chat-input-area,
+            body.in-chat .leave-btn {
+                flex-shrink: 0;
+            }
+
+            body.in-chat footer {
+                display: none; /* The credit line stays on the home screen */
+            }
+
+            /* The QR code sits beside the room id instead of below it, which keeps the room card
+               short enough for laptop screens */
+            .room-panel {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                grid-template-areas:
+                    "id qr"
+                    "actions qr";
+                column-gap: 16px;
+                row-gap: 12px;
+                align-items: start;
+            }
+
+            .room-panel .room-id-box { grid-area: id; }
+            .room-panel .room-actions-row { grid-area: actions; }
+            .room-panel .qr-wrapper { grid-area: qr; margin: 0; align-self: center; }
+        }
+
+        /* Phones in portrait: the whole Send button is the icon */
+        @media (max-width: 600px) {
+            .chat-input-area .send-text { display: none; }
+            .chat-input-area .send-icon { display: inline-flex; }
+            #sendMsgBtn { width: 50px; padding: 0; }
+        }
+
+        /* People who turned off animations in their system settings get none */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
         @media (max-width: 600px) {
             body {
                 padding: 0;
@@ -1509,7 +1713,8 @@ body:not(.dark) .scroll-bottom-btn {
             .nick-section button { min-height: 40px; padding: 0.4rem 1.2rem; }
             .image-preview-bar button { width: 44px; height: 44px; }
 
-            .btn, .join-row input, .chat-input-area input { font-size: 1rem; padding: 0.8rem; }
+            .btn, .join-row input, .name-area input { font-size: 1rem; padding: 0.8rem; }
+            .chat-input-area textarea { font-size: 1rem; padding: 0.8rem; }
         }
     </style>
     
@@ -1548,6 +1753,10 @@ body:not(.dark) .scroll-bottom-btn {
                 </div>
                 <!-- Content shared into the app is waiting for a room -->
                 <div id="shareHint" class="share-hint hidden">Shared content is ready: create or join a room to send it.</div>
+                <div class="name-area">
+                    <label for="homeNickInput">Your name</label>
+                    <input type="text" id="homeNickInput" placeholder="Optional. Others will see this name" maxlength="20" autocomplete="nickname" autocapitalize="words" enterkeyhint="done">
+                </div>
                 <button class="btn btn-primary" id="makeRoomBtn">
                     <span id="makeBtnText">Create Room</span>
                     <span id="makeBtnSpinner" class="spinner" style="display: none;"></span>
@@ -1642,8 +1851,8 @@ body:not(.dark) .scroll-bottom-btn {
             </div>
             <div class="chat-input-area">
                 <button id="attachImageBtn" class="attach-btn" type="button" title="Send an image" aria-label="Send an image"><i class="ph ph-image"></i></button>
-                <input type="text" id="messageInput" placeholder="Message..." autocomplete="off" enterkeyhint="send">
-                <button id="sendMsgBtn">Send</button>
+                <textarea id="messageInput" placeholder="Message..." autocomplete="off" enterkeyhint="send" rows="1"></textarea>
+                <button id="sendMsgBtn" aria-label="Send"><span class="send-text">Send</span><i class="ph ph-paper-plane-right send-icon"></i></button>
             </div>
             <input type="file" id="imageFileInput" accept="image/*" class="hidden">
             
@@ -1660,6 +1869,7 @@ body:not(.dark) .scroll-bottom-btn {
 
 <script>
     const scrollBottomBtn = document.getElementById('scrollToBottomBtn');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let unreadChatCount = 0;
     // Theme dark/light logic
     const themeToggleInput = document.getElementById('themeToggle');
@@ -1787,6 +1997,7 @@ body:not(.dark) .scroll-bottom-btn {
     const rejoinBtn = document.getElementById('rejoinBtn');
     const dismissRejoinBtn = document.getElementById('dismissRejoinBtn');
     const shareHint = document.getElementById('shareHint');
+    const homeNickInput = document.getElementById('homeNickInput');
 
     // Handle create room loading state
     let createRoomTimeout = null;
@@ -1874,7 +2085,7 @@ messagesDiv.addEventListener('scroll', () => {
 scrollBottomBtn.addEventListener('click', () => {
     messagesDiv.scrollTo({
         top: messagesDiv.scrollHeight,
-        behavior: 'smooth'
+        behavior: reducedMotion.matches ? 'auto' : 'smooth'
     });
     clearUnreadDividers();
 });
@@ -1917,6 +2128,10 @@ scrollBottomBtn.addEventListener('click', () => {
         div.className = 'message' + (msg.own ? ' own' : '');
         if (msg.id) div.dataset.id = msg.id;
         div.dataset.ts = String(msg.timestamp);
+        div.dataset.nick = msg.nick;
+        div.dataset.own = msg.own ? '1' : '0';
+        if (msg.id) div.tabIndex = 0; // Reachable with Tab; Enter/Space opens the message actions
+        if (!msg.own) applyNameColor(div, msg.nick);
 
         const name = document.createElement('span');
         name.className = 'msg-name';
@@ -1956,6 +2171,9 @@ scrollBottomBtn.addEventListener('click', () => {
             quote.className = 'msg-quote';
             quote.title = 'Go to the original message';
             quote.dataset.target = msg.replyTo.id || '';
+            quote.tabIndex = 0;
+            quote.setAttribute('role', 'link');
+            applyNameColor(quote, msg.replyTo.nick);
             const quoteNick = document.createElement('span');
             quoteNick.className = 'msg-quote-nick';
             quoteNick.textContent = msg.replyTo.nick;
@@ -2046,6 +2264,7 @@ scrollBottomBtn.addEventListener('click', () => {
             scrollBottomBtn.classList.remove('visible');
         }
     }
+    applyGrouping(div); // After the unread line is in place: a line between two messages ends the run
 }
 
     function addSystemMessage(text) {
@@ -2197,6 +2416,7 @@ if (qrLabel) {
         clearTimeout(typingStopTimer);
         sendTyping(false);
         msgInput.value = '';
+        autoGrowInput();
         msgInput.focus();
     }
 
@@ -2520,7 +2740,102 @@ if (qrLabel) {
             key = k;
         });
         lastDateKey = key;
+        rebuildGroups();
     }
+
+    // --- Message runs (grouping) ---
+    const GROUP_WINDOW_MS = 5 * 60 * 1000;
+
+    // A message continues the previous one when the same person sent both, nothing sits between them
+    // (no date line, "new messages" line or system notice) and less than 5 minutes passed
+    function applyGrouping(el) {
+        const prev = el.previousElementSibling;
+        const prevIsMessage = !!prev && prev.classList.contains('message');
+        const ts = Number(el.dataset.ts), prevTs = prevIsMessage ? Number(prev.dataset.ts) : 0;
+        const continued = prevIsMessage
+            && prev.dataset.nick === el.dataset.nick
+            && prev.dataset.own === el.dataset.own
+            && ts >= prevTs && ts - prevTs < GROUP_WINDOW_MS;
+        el.classList.toggle('continued', continued);
+        if (prevIsMessage) prev.classList.toggle('has-next', continued);
+    }
+
+    function rebuildGroups() {
+        const items = messagesDiv.querySelectorAll('.message');
+        items.forEach((el) => el.classList.remove('has-next'));
+        items.forEach(applyGrouping);
+    }
+
+    // --- Name colors: a stable hue per name, lightness adjusted until it reads on the bubbles ---
+    const nameColorCache = new Map();
+
+    function hashString(str) {
+        let h = 2166136261;
+        for (let i = 0; i < str.length; i++) {
+            h ^= str.charCodeAt(i);
+            h = Math.imul(h, 16777619);
+        }
+        return h >>> 0;
+    }
+
+    function hslToRgb(h, s, l) {
+        s /= 100; l /= 100;
+        const k = (n) => (n + h / 30) % 12;
+        const a = s * Math.min(l, 1 - l);
+        const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+        return [f(0) * 255, f(8) * 255, f(4) * 255];
+    }
+
+    function relativeLuminance(rgb) {
+        const ch = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+        return 0.2126 * ch(rgb[0]) + 0.7152 * ch(rgb[1]) + 0.0722 * ch(rgb[2]);
+    }
+
+    function contrastRatio(l1, l2) {
+        const hi = Math.max(l1, l2), lo = Math.min(l1, l2);
+        return (hi + 0.05) / (lo + 0.05);
+    }
+
+    // Luminance of the bubble background that is hardest for the text: the own bubble in each theme
+    const NAME_BG_LUM_LIGHT = relativeLuminance([217, 238, 251]); // #d9eefb
+    const NAME_BG_LUM_DARK = relativeLuminance([31, 74, 110]);    // #1f4a6e
+
+    function nameColorFor(hue, dark) {
+        let l = dark ? 72 : 34;
+        const sat = dark ? 70 : 60;
+        for (let i = 0; i < 30; i++) {
+            const lum = relativeLuminance(hslToRgb(hue, sat, l));
+            if (contrastRatio(lum, dark ? NAME_BG_LUM_DARK : NAME_BG_LUM_LIGHT) >= 4.6) break;
+            l += dark ? 2 : -2;
+        }
+        return `hsl(${hue}, ${sat}%, ${l}%)`;
+    }
+
+    function nameColors(nick) {
+        const key = String(nick || '').toLowerCase();
+        let colors = nameColorCache.get(key);
+        if (!colors) {
+            const hue = hashString(key) % 360;
+            colors = { light: nameColorFor(hue, false), dark: nameColorFor(hue, true) };
+            nameColorCache.set(key, colors);
+        }
+        return colors;
+    }
+
+    function applyNameColor(el, nick) {
+        const colors = nameColors(nick);
+        el.style.setProperty('--name-light', colors.light);
+        el.style.setProperty('--name-dark', colors.dark);
+    }
+
+    // --- Message box: grows with the text up to five lines ---
+    function autoGrowInput() {
+        msgInput.style.height = '50px';
+        const needed = msgInput.scrollHeight + 2; // + border
+        msgInput.style.height = Math.max(50, Math.min(needed, 140)) + 'px';
+    }
+
+    msgInput.addEventListener('input', autoGrowInput);
 
     function normalizeReactions(raw) {
         const out = {};
@@ -2584,7 +2899,7 @@ if (qrLabel) {
     function jumpToMessage(id) {
         const entry = id ? messagesById.get(id) : null;
         if (!entry) return;
-        entry.el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        entry.el.scrollIntoView({ block: 'center', behavior: reducedMotion.matches ? 'auto' : 'smooth' });
         entry.el.classList.add('flash');
         setTimeout(() => entry.el.classList.remove('flash'), 1200);
     }
@@ -2647,6 +2962,36 @@ if (qrLabel) {
         msgToolbar.classList.add('hidden');
         messagesWrap.classList.remove('has-selection');
     }
+
+    // Keyboard: Enter or Space on a focused message opens its actions (and moves focus to them),
+    // Enter on a quote jumps to the original message
+    messagesDiv.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const target = e.target;
+        if (!(target instanceof Element)) return;
+        if (target.classList.contains('msg-quote')) {
+            if (e.key === 'Enter') { e.preventDefault(); jumpToMessage(target.dataset.target); }
+            return;
+        }
+        if (!target.classList.contains('message') || !target.dataset.id) return;
+        e.preventDefault();
+        if (selectedMessageId === target.dataset.id) {
+            clearSelection();
+        } else {
+            selectMessage(target.dataset.id);
+            const first = msgToolbar.querySelector('button');
+            if (first && selectedMessageId) first.focus();
+        }
+    });
+
+    // Escape inside the actions returns focus to the message it belongs to
+    msgToolbar.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        const entry = selectedMessageId ? messagesById.get(selectedMessageId) : null;
+        clearSelection();
+        if (entry) entry.el.focus();
+        e.stopPropagation();
+    });
 
     messagesDiv.addEventListener('click', (e) => {
         const chip = e.target.closest('.reaction-chip');
@@ -2806,6 +3151,7 @@ if (qrLabel) {
             const row = document.createElement('div');
             row.className = 'member-row';
             row.textContent = nick;
+            applyNameColor(row, nick);
             if (nick === myNick) {
                 const me = document.createElement('span');
                 me.className = 'member-me';
@@ -2946,10 +3292,44 @@ if (qrLabel) {
         const share = pendingShare;
         pendingShare = null;
         shareHint.classList.add('hidden');
-        if (share.text) msgInput.value = share.text.substring(0, 3000);
+        if (share.text) { msgInput.value = share.text.substring(0, 3000); autoGrowInput(); }
         if (share.file) handleImageFile(share.file);
         else msgInput.focus();
     }
+
+    // --- Name chosen on the home screen, remembered for the next visit ---
+    const SAVED_NICK_KEY = 'joshchat-nick';
+
+    function readSavedNick() {
+        try {
+            const v = localStorage.getItem(SAVED_NICK_KEY);
+            return v && v.trim() ? v.trim().substring(0, 20) : '';
+        } catch (e) {
+            return '';
+        }
+    }
+
+    function saveNick(nick) {
+        try {
+            if (nick) localStorage.setItem(SAVED_NICK_KEY, nick);
+            else localStorage.removeItem(SAVED_NICK_KEY);
+        } catch (e) {}
+    }
+
+    // Called when creating or joining: the name typed on the home screen is applied first
+    // (events are delivered in order, so the room is joined under that name)
+    function applyHomeNick() {
+        const typed = homeNickInput.value.trim().substring(0, 20);
+        saveNick(typed);
+        if (typed && typed !== myNick) {
+            socket.emit('set_nickname', { nick: typed });
+        }
+    }
+
+    homeNickInput.value = readSavedNick();
+    homeNickInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); joinInput.focus(); }
+    });
 
     // --- Server feedback ---
     socket.on('reaction_update', (data) => {
@@ -2999,8 +3379,8 @@ if (qrLabel) {
         const sysMessages = document.querySelectorAll('.system-message.reconnecting');
         sysMessages.forEach(msg => msg.remove());
         
-        // Request nickname upon connection
-        updateNickname(myNick || generateRandomNick());
+        // Request nickname upon connection (the saved name from the home screen comes first)
+        updateNickname(myNick || readSavedNick() || generateRandomNick());
 
         // FIX: If we were already in a room, silently rejoin on the server
         if (currentRoomId) {
@@ -3038,6 +3418,8 @@ if (qrLabel) {
         } else if (oldNick && oldNick !== myNick) {
             // Notify the user if they actively changed it
             addSystemMessage(`Name updated to ${myNick}.`);
+            saveNick(myNick);           // A name set in the room is remembered too
+            homeNickInput.value = myNick;
         }
     });
 
@@ -3060,7 +3442,11 @@ function clearUnreadNotifications() {
     
     // Remove the inline scrollable divider if it exists
     const divider = document.getElementById('unreadDivider');
-    if (divider) divider.remove();
+    if (divider) {
+        const after = divider.nextElementSibling;
+        divider.remove();
+        if (after && after.classList.contains('message')) applyGrouping(after); // The run may continue across the removed line
+    }
     
     // Hide the unread count badge on the floating button
     const scrollBadge = document.getElementById('scrollBadge');
@@ -3192,6 +3578,7 @@ socket.on('join_result', (data) => {
     
     makeBtn.addEventListener('click', () => {
         setCreateRoomLoading(true);
+        applyHomeNick();
         socket.emit('create_room');
     });
     
@@ -3204,6 +3591,7 @@ socket.on('join_result', (data) => {
             return;
         }
         setJoinRoomLoading(true);
+        applyHomeNick();
         socket.emit('join_room', { roomId: rid });
     });
     
@@ -3211,7 +3599,13 @@ socket.on('join_result', (data) => {
     // On touch devices a tap on Send would blur the input (closing the keyboard) only for
     // sendMessage() to focus it again: keep the focus where it is so the keyboard stays put
     sendBtn.addEventListener('mousedown', (e) => e.preventDefault());
-    msgInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) sendMessage(); }); // keydown: mobile keyboards don't reliably fire keypress
+    // Enter sends, Shift+Enter starts a new line (keydown: mobile keyboards don't reliably fire keypress)
+    msgInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
     leaveBtn.addEventListener('click', leaveRoomByChoice);
     joinInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.isComposing) {
